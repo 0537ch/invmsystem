@@ -294,7 +294,7 @@ export default function InvoiceTable() {
               </h2>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between gap-3">
               {/* Search bar */}
               <div className="relative max-w-md">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -307,27 +307,28 @@ export default function InvoiceTable() {
                 />
               </div>
 
-              {/* Import button */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".csv,.xlsx"
-                onChange={handleFileUpload}
-                disabled={uploading}
-                className="hidden"
-              />
+              {/* Right side buttons */}
+              <div className="flex items-center gap-3">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv,.xlsx"
+                  onChange={handleFileUpload}
+                  disabled={uploading}
+                  className="hidden"
+                />
 
-              {!selectedFile ? (
-                <>
-                  <Button onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-                    Choose File
-                  </Button>
-                  <Dialog open={notificationDialogOpen} onOpenChange={setNotificationDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button disabled={selectedPeople.length === 0}>
-                        Send Notification {selectedPeople.length > 0 && `(${selectedPeople.length})`}
-                      </Button>
-                    </DialogTrigger>
+                {!selectedFile ? (
+                  <>
+                    <Button onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                      Choose File
+                    </Button>
+                    <Dialog open={notificationDialogOpen} onOpenChange={setNotificationDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button disabled={selectedPeople.length === 0}>
+                          Send Notification {selectedPeople.length > 0 && `(${selectedPeople.length})`}
+                        </Button>
+                      </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Send Notifications</DialogTitle>
@@ -396,6 +397,7 @@ export default function InvoiceTable() {
                   </Button>
                 </>
               )}
+              </div>
             </div>
           </div>
         </CardContent>
