@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getDb } from '@/lib/db'
+import * as XLSX from 'xlsx'
 
 export async function POST(request: Request) {
   try {
@@ -16,15 +17,51 @@ export async function POST(request: Request) {
       )
     }
 
-    // Read file content
-    const text = await file.text()
+    let rows: Array<{
+      name: string
+      email: string
+      invoice_num: string
+      price: number
+    }> = []
 
-    // Parse CSV
-    const rows = parseCSV(text)
+    const fileName = file.name.toLowerCase()
+
+    if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+      // Parse Excel file
+      const buffer = await file.arrayBuffer()
+      const workbook = XLSX.read(buffer)
+      const sheetName = workbook.SheetNames[0]
+      const sheet = workbook.Sheets[sheetName]
+      const data = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][]
+
+      // Skip header if it exists
+      const startIndex = data.length > 0 && String(data[0][0]).toLowerCase() === 'name' ? 1 : 0
+
+      for (let i = startIndex; i < data.length; i++) {
+        const row = data[i]
+        if (row.length >= 4) {
+          rows.push({
+            name: String(row[0]).trim(),
+            email: String(row[1]).trim(),
+            invoice_num: String(row[2]).trim(),
+            price: parseFloat(row[3]) || 0
+          })
+        }
+      }
+    } else if (fileName.endsWith('.csv')) {
+      // Parse CSV file
+      const text = await file.text()
+      rows = parseCSV(text)
+    } else {
+      return NextResponse.json(
+        { error: 'Unsupported file format. Please use CSV or XLSX.' },
+        { status: 400 }
+      )
+    }
 
     if (rows.length === 0) {
       return NextResponse.json(
-        { error: 'CSV file is empty' },
+        { error: 'File is empty or has no valid data' },
         { status: 400 }
       )
     }
@@ -79,12 +116,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `Successfully imported ${rows.length} invoices`
+      message: `Successfully imported ${rows.length} invoices from ${file.name}`
     })
   } catch (error) {
-    console.error('Error importing CSV:', error)
+    console.error('Error importing file:', error)
     return NextResponse.json(
-      { error: 'Failed to import CSV' },
+      { error: 'Failed to import file' },
       { status: 500 }
     )
   }
