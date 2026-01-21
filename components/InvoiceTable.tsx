@@ -279,15 +279,8 @@ export default function InvoiceTable() {
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardContent className="pt-6">
+
           <div className="flex flex-col gap-4">
-            <div>
-              <h2 className="text-2xl font-bold">
-                {filteredPeople.length} {filteredPeople.length === 1 ? 'Person' : 'People'}
-                {searchQuery && ` (filtered from ${people.length})`}
-              </h2>
-            </div>
 
             <div className="flex items-center justify-between gap-3">
               {/* Search bar */}
@@ -395,8 +388,7 @@ export default function InvoiceTable() {
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+
 
       <div className='rounded-md border'>
         <Table className='table-fixed'>
