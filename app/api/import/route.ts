@@ -66,53 +66,50 @@ export async function POST(request: Request) {
       )
     }
 
-    // Use transaction to replace all data
-    await sql.begin(async (sql) => {
-      // Delete all existing data
-      await sql`DELETE FROM invoices`
-      await sql`DELETE FROM persons`
+    // Delete all existing data
+    await sql`DELETE FROM invoices`
+    await sql`DELETE FROM persons`
 
-      // Group by person to avoid duplicates
-      const peopleMap = new Map<string, {
-        name: string
-        email: string
-        invoices: Array<{ invoice_num: string; price: number }>
-      }>()
+    // Group by person to avoid duplicates
+    const peopleMap = new Map<string, {
+      name: string
+      email: string
+      invoices: Array<{ invoice_num: string; price: number }>
+    }>()
 
-      rows.forEach((row) => {
-        const key = `${row.name}|${row.email}`
+    rows.forEach((row) => {
+      const key = `${row.name}|${row.email}`
 
-        if (!peopleMap.has(key)) {
-          peopleMap.set(key, {
-            name: row.name,
-            email: row.email,
-            invoices: []
-          })
-        }
-
-        peopleMap.get(key)!.invoices.push({
-          invoice_num: row.invoice_num,
-          price: row.price
+      if (!peopleMap.has(key)) {
+        peopleMap.set(key, {
+          name: row.name,
+          email: row.email,
+          invoices: []
         })
-      })
-
-      // Insert people and their invoices
-      for (const [_, personData] of peopleMap) {
-        const [person] = await sql<{ id: number }[]>`
-          INSERT INTO persons (name, email)
-          VALUES (${personData.name}, ${personData.email})
-          RETURNING id
-        `
-
-        // Insert invoices for this person
-        for (const invoice of personData.invoices) {
-          await sql`
-            INSERT INTO invoices (invoice_num, price, person_id)
-            VALUES (${invoice.invoice_num}, ${invoice.price}, ${person.id})
-          `
-        }
       }
+
+      peopleMap.get(key)!.invoices.push({
+        invoice_num: row.invoice_num,
+        price: row.price
+      })
     })
+
+    // Insert people and their invoices
+    for (const [_, personData] of peopleMap) {
+      const [person] = await sql<{ id: number }[]>`
+        INSERT INTO persons (name, email)
+        VALUES (${personData.name}, ${personData.email})
+        RETURNING id
+      `
+
+      // Insert invoices for this person
+      for (const invoice of personData.invoices) {
+        await sql`
+          INSERT INTO invoices (invoice_num, price, person_id)
+          VALUES (${invoice.invoice_num}, ${invoice.price}, ${person.id})
+        `
+      }
+    }
 
     return NextResponse.json({
       success: true,
