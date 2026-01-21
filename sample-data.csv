@@ -1,0 +1,10 @@
+name,email,invoice_number,price
+John Doe,john@example.com,John Doe/inv/1/2026,500.00
+John Doe,john@example.com,John Doe/inv/2/2026,300.00
+John Doe,john@example.com,John Doe/inv/3/2026,200.00
+Jane Smith,jane@example.com,Jane Smith/inv/1/2026,750.00
+Jane Smith,jane@example.com,Jane Smith/inv/2/2026,450.00
+Bob Wilson,bob@example.com,Bob Wilson/inv/1/2026,1000.00
+Alice Johnson,alice@example.com,Alice Johnson/inv/1/2026,150.00
+Alice Johnson,alice@example.com,Alice Johnson/inv/2/2026,250.00
+Charlie Brown,charlie@example.com,Charlie Brown/inv/1/2026,600.00
