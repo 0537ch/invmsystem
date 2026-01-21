@@ -182,33 +182,6 @@ export default function InvoiceTable() {
       )
     },
     {
-      id: 'expander',
-      size: 25,
-      header: () => null,
-      cell: ({ row }) => {
-        return row.getCanExpand() ? (
-          <Button
-            {...{
-              className: 'size-7 text-muted-foreground',
-              onClick: row.getToggleExpandedHandler(),
-              'aria-expanded': row.getIsExpanded(),
-              'aria-label': row.getIsExpanded()
-                ? `Collapse invoices for ${row.original.name}`
-                : `Expand invoices for ${row.original.name}`,
-              size: 'icon',
-              variant: 'ghost'
-            }}
-          >
-            {row.getIsExpanded() ? (
-              <ChevronUpIcon className='opacity-60' aria-hidden='true' />
-            ) : (
-              <ChevronDownIcon className='opacity-60' aria-hidden='true' />
-            )}
-          </Button>
-        ) : null
-      }
-    },
-    {
       header: 'Name',
       accessorKey: 'name',
       cell: ({ row }) => <div className='font-medium'>{row.getValue('name')}</div>
@@ -225,9 +198,31 @@ export default function InvoiceTable() {
         const invoices = row.getValue('invoices') as Invoice[]
         const count = invoices.length
         return (
-          <Badge variant='secondary'>
-            {count} {count === 1 ? 'invoice' : 'invoices'}
-          </Badge>
+          <div className='flex items-center gap-2'>
+            <Badge variant='secondary'>
+              {count} {count === 1 ? 'invoice' : 'invoices'}
+            </Badge>
+            {row.getCanExpand() && (
+              <Button
+                {...{
+                  className: 'size-7 text-muted-foreground',
+                  onClick: row.getToggleExpandedHandler(),
+                  'aria-expanded': row.getIsExpanded(),
+                  'aria-label': row.getIsExpanded()
+                    ? `Collapse invoices for ${row.original.name}`
+                    : `Expand invoices for ${row.original.name}`,
+                  size: 'icon',
+                  variant: 'ghost'
+                }}
+              >
+                {row.getIsExpanded() ? (
+                  <ChevronUpIcon className='opacity-60' aria-hidden='true' />
+                ) : (
+                  <ChevronDownIcon className='opacity-60' aria-hidden='true' />
+                )}
+              </Button>
+            )}
+          </div>
         )
       }
     },
@@ -296,7 +291,7 @@ export default function InvoiceTable() {
 
             <div className="flex items-center justify-between gap-3">
               {/* Search bar */}
-              <div className="relative max-w-md">
+              <div className="relative max-w-xl">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
@@ -432,7 +427,6 @@ export default function InvoiceTable() {
                   </TableRow>
                   {row.getIsExpanded() && (
                     <TableRow className='hover:bg-transparent'>
-                      <TableCell></TableCell>
                       <TableCell></TableCell>
                       <TableCell></TableCell>
                       <TableCell></TableCell>
