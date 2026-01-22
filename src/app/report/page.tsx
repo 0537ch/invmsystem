@@ -1,5 +1,5 @@
 import { AppSidebar } from '@/components/app-sidebar'
-import InvoiceTable from '@/components/InvoiceTable'
+import InvoiceTable from '@/app/report/_components/InvoiceTable'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
 

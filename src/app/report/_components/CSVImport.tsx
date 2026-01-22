@@ -4,7 +4,6 @@ import { useState, useRef } from 'react'
 import { toast } from 'sonner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 
 interface CSVImportProps {
   onImportSuccess?: () => void
