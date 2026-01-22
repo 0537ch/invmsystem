@@ -293,7 +293,7 @@ export default function InvoiceTable() {
                   <DialogHeader>
                     <DialogTitle>Send Notifications</DialogTitle>
                     <DialogDescription>
-                      Review and send notifications to {selectedPeople.length} {selectedPeople.length === 1 ? 'person' : 'people'}
+                      Kirim Notifikasi ke {selectedPeople.length} {selectedPeople.length === 1 ? 'orang' : 'orang'}
                     </DialogDescription>
                   </DialogHeader>
 
