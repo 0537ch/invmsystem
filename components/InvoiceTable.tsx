@@ -286,7 +286,7 @@ export default function InvoiceTable() {
               <Dialog open={notificationDialogOpen} onOpenChange={setNotificationDialogOpen}>
                 <DialogTrigger asChild>
                   <Button disabled={selectedPeople.length === 0}>
-                    Send Notification {selectedPeople.length > 0 && `(${selectedPeople.length})`}
+                    Kirim {selectedPeople.length > 0 && `(${selectedPeople.length})`}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -358,7 +358,7 @@ export default function InvoiceTable() {
                 {!selectedFile ? (
                   <>
                     <Button onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-                      Choose File
+                      Upload File
                     </Button>
                     <Button variant="outline" onClick={handleDownloadTemplate}>
                       Template
