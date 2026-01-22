@@ -146,16 +146,23 @@ export default function InvoiceTable() {
       await new Promise(resolve => setTimeout(resolve, 1000))
 
       toast.success(`Notifications sent to ${selectedPeople.length} ${selectedPeople.length === 1 ? 'person' : 'people'}`, {
-        duration: 4000,
-        className: 'border-green-500 bg-green-50'
-      })
+          style: {
+            '--normal-bg': 'light-dark(var(--color-green-600), var(--color-green-400))',
+            '--normal-text': 'var(--color-white)',
+            '--normal-border': 'light-dark(var(--color-green-600), var(--color-green-400))'
+          } as React.CSSProperties
+        })
       setNotificationDialogOpen(false)
       setRowSelection({})
     } catch (err) {
       toast.error('Failed to send notifications', {
-        duration: 4000,
-        className: 'border-red-500 bg-red-50'
-      })
+          style: {
+            '--normal-bg':
+              'light-dark(var(--destructive), color-mix(in oklab, var(--destructive) 60%, var(--background)))',
+            '--normal-text': 'var(--color-white)',
+            '--normal-border': 'transparent'
+          } as React.CSSProperties
+        })
     } finally {
       setSending(false)
     }
