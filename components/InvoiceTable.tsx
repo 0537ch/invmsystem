@@ -1,13 +1,12 @@
 'use client'
 
 import { Fragment, useEffect, useState, useMemo, useRef } from 'react'
-import { ChevronDownIcon, ChevronUpIcon, Search } from 'lucide-react'
+import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 import { flexRender, getCoreRowModel, getExpandedRowModel, useReactTable } from '@tanstack/react-table'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -34,7 +33,6 @@ export default function InvoiceTable() {
   const [rowSelection, setRowSelection] = useState({})
   const [uploading, setUploading] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false)
   const [sending, setSending] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -42,18 +40,6 @@ export default function InvoiceTable() {
   useEffect(() => {
     fetchPeople()
   }, [])
-
-  // Filter people based on search query
-  const filteredPeople = useMemo(() => {
-    if (!searchQuery) return people
-
-    const query = searchQuery.toLowerCase()
-    return people.filter(person =>
-      person.name.toLowerCase().includes(query) ||
-      person.email.toLowerCase().includes(query) ||
-      person.invoices.some(inv => inv.invoice_num.toLowerCase().includes(query))
-    )
-  }, [people, searchQuery])
 
   async function fetchPeople() {
     try {
@@ -137,8 +123,21 @@ export default function InvoiceTable() {
 
   const selectedPeople = useMemo(() => {
     const selectedIndices = Object.keys(rowSelection).filter(key => rowSelection[key as keyof typeof rowSelection])
-    return filteredPeople.filter((_, index) => selectedIndices.includes(String(index)))
-  }, [rowSelection, filteredPeople])
+    return people.filter((_, index) => selectedIndices.includes(String(index)))
+  }, [rowSelection, people])
+
+  function handleDownloadTemplate() {
+    const headers = 'name,email,invoice_number,price'
+    const blob = new Blob([headers], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'invoice-template.csv'
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+  }
 
   async function handleSendNotifications() {
     setSending(true)
@@ -242,7 +241,7 @@ export default function InvoiceTable() {
   ], [])
 
   const table = useReactTable({
-    data: filteredPeople,
+    data: people,
     columns,
     getRowCanExpand: row => Boolean(row.original.invoices && row.original.invoices.length > 0),
     getCoreRowModel: getCoreRowModel(),
@@ -283,17 +282,67 @@ export default function InvoiceTable() {
           <div className="flex flex-col gap-4">
 
             <div className="flex items-center justify-between gap-3">
-              {/* Search bar */}
-              <div className="relative max-w-xl">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search name, email, invoice..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
+              {/* Left side - Send Notification button */}
+              <Dialog open={notificationDialogOpen} onOpenChange={setNotificationDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button disabled={selectedPeople.length === 0}>
+                    Send Notification {selectedPeople.length > 0 && `(${selectedPeople.length})`}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Send Notifications</DialogTitle>
+                    <DialogDescription>
+                      Review and send notifications to {selectedPeople.length} {selectedPeople.length === 1 ? 'person' : 'people'}
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="mt-4">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead className="text-right">Total</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedPeople.map((person) => {
+                          const total = typeof person.total === 'string' ? parseFloat(person.total) : person.total
+                          return (
+                            <Fragment key={person.id}>
+                              <TableRow>
+                                <TableCell className="font-medium">{person.name}</TableCell>
+                                <TableCell className="text-muted-foreground">{person.email}</TableCell>
+                                <TableCell className="text-right">Rp {total.toLocaleString('id-ID')}</TableCell>
+                              </TableRow>
+                              {person.invoices.map((invoice) => {
+                                const price = typeof invoice.price === 'string' ? parseFloat(invoice.price) : invoice.price
+                                return (
+                                  <TableRow key={invoice.id} className="bg-muted/50">
+                                    <TableCell className="pl-8">{invoice.invoice_num}</TableCell>
+                                    <TableCell></TableCell>
+                                    <TableCell className="text-right">Rp {price.toLocaleString('id-ID')}</TableCell>
+                                  </TableRow>
+                                )
+                              })}
+                            </Fragment>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  <div className="flex justify-end gap-3 mt-4">
+                    <Button variant="outline" onClick={() => setNotificationDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSendNotifications} disabled={sending}>
+                      {sending ? 'Sending...' : 'Send Notifications'}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
 
               {/* Right side buttons */}
               <div className="flex items-center gap-3">
@@ -311,80 +360,23 @@ export default function InvoiceTable() {
                     <Button onClick={() => fileInputRef.current?.click()} disabled={uploading}>
                       Choose File
                     </Button>
-                    <Dialog open={notificationDialogOpen} onOpenChange={setNotificationDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button disabled={selectedPeople.length === 0}>
-                          Send Notification {selectedPeople.length > 0 && `(${selectedPeople.length})`}
-                        </Button>
-                      </DialogTrigger>
-                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle>Send Notifications</DialogTitle>
-                        <DialogDescription>
-                          Review and send notifications to {selectedPeople.length} {selectedPeople.length === 1 ? 'person' : 'people'}
-                        </DialogDescription>
-                      </DialogHeader>
-
-                      <div className="mt-4">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Name</TableHead>
-                              <TableHead>Invoices</TableHead>
-                              <TableHead className="text-right">Total</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {selectedPeople.map((person) => {
-                              const total = typeof person.total === 'string' ? parseFloat(person.total) : person.total
-                              return (
-                                <Fragment key={person.id}>
-                                  <TableRow>
-                                    <TableCell className="font-medium">{person.name}</TableCell>
-                                    <TableCell className="text-muted-foreground">{person.email}</TableCell>
-                                    <TableCell className="text-right">Rp {total.toLocaleString('id-ID')}</TableCell>
-                                  </TableRow>
-                                  {person.invoices.map((invoice) => {
-                                    const price = typeof invoice.price === 'string' ? parseFloat(invoice.price) : invoice.price
-                                    return (
-                                      <TableRow key={invoice.id} className="bg-muted/50">
-                                        <TableCell className="pl-8">{invoice.invoice_num}</TableCell>
-                                        <TableCell></TableCell>
-                                        <TableCell className="text-right">Rp {price.toLocaleString('id-ID')}</TableCell>
-                                      </TableRow>
-                                    )
-                                  })}
-                                </Fragment>
-                              )
-                            })}
-                          </TableBody>
-                        </Table>
-                      </div>
-
-                      <div className="flex justify-end gap-3 mt-4">
-                        <Button variant="outline" onClick={() => setNotificationDialogOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button onClick={handleSendNotifications} disabled={sending}>
-                          {sending ? 'Sending...' : 'Send Notifications'}
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </>
-              ) : (
-                <>
-                  <div className="text-sm text-muted-foreground max-w-48 truncate hidden sm:block">
-                    {selectedFile.name}
-                  </div>
-                  <Button onClick={handleImport} disabled={uploading}>
-                    {uploading ? 'Importing...' : 'Import'}
-                  </Button>
-                  <Button variant="outline" onClick={() => setSelectedFile(null)} disabled={uploading}>
-                    Cancel
-                  </Button>
-                </>
-              )}
+                    <Button variant="outline" onClick={handleDownloadTemplate}>
+                      Template
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-sm text-muted-foreground max-w-48 truncate hidden sm:block">
+                      {selectedFile.name}
+                    </div>
+                    <Button onClick={handleImport} disabled={uploading}>
+                      {uploading ? 'Importing...' : 'Import'}
+                    </Button>
+                    <Button variant="outline" onClick={() => setSelectedFile(null)} disabled={uploading}>
+                      Cancel
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
