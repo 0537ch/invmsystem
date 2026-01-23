@@ -1,6 +1,5 @@
 import postgres from 'postgres'
 
-// Database connection singleton
 let sql: postgres.Sql<Record<string, never>> | null = null
 
 export function getDb() {
@@ -12,14 +11,13 @@ export function getDb() {
     }
 
     sql = postgres(url, {
-      ssl: 'require', // Neon requires SSL
+      ssl: 'require',
     })
   }
 
   return sql
 }
 
-// Types for our data
 export type Person = {
   id: number
   name: string

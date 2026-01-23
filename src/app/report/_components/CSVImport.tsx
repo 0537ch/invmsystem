@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { toast } from 'sonner'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 
 interface CSVImportProps {
@@ -17,7 +17,6 @@ export default function CSVImport({ onImportSuccess }: CSVImportProps) {
     const file = event.target.files?.[0]
     if (!file) return
 
-    // Validate file type
     if (!file.name.endsWith('.csv')) {
       toast.error('Please upload a CSV file')
       return
@@ -42,12 +41,10 @@ export default function CSVImport({ onImportSuccess }: CSVImportProps) {
 
       toast.success(data.message || 'Import successful!')
 
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
 
-      // Notify parent component
       if (onImportSuccess) {
         onImportSuccess()
       }

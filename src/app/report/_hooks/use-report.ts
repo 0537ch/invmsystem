@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react"
 import { toast } from "sonner"
 
-// Types specific to this component
 export type Invoice = {
   id: number
   invoice_num: string
@@ -18,8 +17,7 @@ export type Person = {
 
 
 export function useInvoiceData() {
-    // Move these states:
-    const [people, setPeople] = useState<Person[]>([])
+  const [people, setPeople] = useState<Person[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [uploading, setUploading] = useState(false)
@@ -102,7 +100,6 @@ export function useInvoiceData() {
         fileInputRef.current.value = ''
       }
 
-      // Refresh the table
       fetchPeople()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to import file', {
@@ -143,14 +140,13 @@ export function useRowSelection(people: Person[]) {
     }
   }
 
-export function useNotifications(selectedPeople: Person[], setRowSelection: (val: any) => void) {
+export function useNotifications(selectedPeople: Person[], setRowSelection: (val: Record<string, boolean>) => void) {
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false)
   const [sending, setSending] = useState(false)
 
   async function handleSendNotifications() {
     setSending(true)
     try {
-      // Simulate sending notifications
       await new Promise(resolve => setTimeout(resolve, 1000))
 
       toast.success(`Notifications sent to ${selectedPeople.length} ${selectedPeople.length === 1 ? 'person' : 'people'}`, {
@@ -162,7 +158,7 @@ export function useNotifications(selectedPeople: Person[], setRowSelection: (val
       })
       setNotificationDialogOpen(false)
       setRowSelection({})
-    } catch (err) {
+    } catch {
       toast.error('Failed to send notifications', {
         style: {
           '--normal-bg':

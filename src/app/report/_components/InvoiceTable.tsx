@@ -10,9 +10,9 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { useInvoiceData, useRowSelection, useNotifications, downloadTemplate, type Person, type Invoice } from '../_hooks/use-report'
+import { toNumber } from '@/lib/utils'
 
 export default function InvoiceTable() {
-  // Use custom hooks
   const invoiceData = useInvoiceData()
   const selection = useRowSelection(invoiceData.people)
   const notifications = useNotifications(selection.selectedPeople, selection.setRowSelection)
@@ -90,7 +90,7 @@ export default function InvoiceTable() {
       accessorKey: 'total',
       cell: ({ row }) => {
         const total = row.getValue('total') as number | string
-        const numTotal = typeof total === 'string' ? parseFloat(total) : total
+        const numTotal = toNumber(total)
         return (
           <div className='text-right font-semibold'>
             Rp {numTotal.toLocaleString('id-ID')}
@@ -168,7 +168,7 @@ export default function InvoiceTable() {
                       </TableHeader>
                       <TableBody>
                         {selectedPeople.map((person) => {
-                          const total = typeof person.total === 'string' ? parseFloat(person.total) : person.total
+                          const total = toNumber(person.total)
                           return (
                             <Fragment key={person.id}>
                               <TableRow>
@@ -177,7 +177,7 @@ export default function InvoiceTable() {
                                 <TableCell className="text-right">Rp {total.toLocaleString('id-ID')}</TableCell>
                               </TableRow>
                               {person.invoices.map((invoice) => {
-                                const price = typeof invoice.price === 'string' ? parseFloat(invoice.price) : invoice.price
+                                const price = toNumber(invoice.price)
                                 return (
                                   <TableRow key={invoice.id} className="bg-muted/50">
                                     <TableCell className="pl-8">{invoice.invoice_num}</TableCell>
@@ -277,7 +277,7 @@ export default function InvoiceTable() {
                       <TableCell className='p-4'>
                         <div className='space-y-1'>
                           {row.original.invoices.map((invoice) => {
-                            const price = typeof invoice.price === 'string' ? parseFloat(invoice.price) : invoice.price
+                            const price = toNumber(invoice.price)
                             return (
                               <div key={invoice.id} className='py-2 border-b last:border-0'>
                                 <div className='text-sm'>{invoice.invoice_num}</div>

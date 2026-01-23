@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { AppSidebar } from '@/components/app-sidebar'
 import InvoiceTable from '@/app/report/_components/InvoiceTable'
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
 
 export default function InvoicePage() {

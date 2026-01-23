@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
 import { getDb } from '@/lib/db'
+import { toNumber } from '@/lib/utils'
+
 
 export async function GET() {
   try {
     const sql = getDb()
 
-    // Fetch all people with their invoices
     const people = await sql<PersonRow[]>`
       SELECT
         p.id,
@@ -20,7 +21,6 @@ export async function GET() {
       ORDER BY p.name, i.invoice_num
     `
 
-    // Group invoices by person
     const grouped = new Map<number, PersonWithInvoices>()
 
     people.forEach((row) => {
@@ -38,7 +38,7 @@ export async function GET() {
       const person = grouped.get(row.id)!
 
       if (row.invoice_id && row.invoice_num && row.price !== null) {
-        const price = typeof row.price === 'string' ? parseFloat(row.price) : row.price
+        const price = toNumber(row.price)
         person.invoices.push({
           id: row.invoice_id,
           invoice_num: row.invoice_num,
@@ -50,7 +50,6 @@ export async function GET() {
       }
     })
 
-    // Convert map to array and sort by total (descending)
     const result = Array.from(grouped.values()).sort((a, b) => b.total - a.total)
 
     return NextResponse.json({ people: result })
@@ -63,7 +62,6 @@ export async function GET() {
   }
 }
 
-// Types
 type PersonRow = {
   id: number
   name: string
