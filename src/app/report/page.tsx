@@ -5,9 +5,11 @@ import { AppSidebar } from '@/components/app-sidebar'
 import InvoiceTable from '@/app/report/_components/InvoiceTable'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
+import { Input } from '@/components/ui/input'
 
 export default function InvoicePage() {
   const [totalCount, setTotalCount] = useState<number>(0)
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     async function fetchTotal() {
@@ -42,6 +44,11 @@ export default function InvoicePage() {
               <p className="text-muted-foreground mt-1">
                 Total: {totalCount} orang
               </p>
+              <Input
+              placeholder='Search'
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className='mt-3 max-w-sm'/>
             </div>
           </div>
           <Separator className="my-2" />
