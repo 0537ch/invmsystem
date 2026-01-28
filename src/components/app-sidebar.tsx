@@ -10,12 +10,24 @@ import {
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
-  FileText, MessageCircleWarning
+  FileText, MessageCircleWarning, Monitor
 } from "lucide-react";
 import type { Route } from "./nav-main";
 import DashboardNavigation from "./nav-main";
 
 const dashboardRoutes: Route[] = [
+  {
+    id: "banner",
+    title: "Banner",
+    icon: <Monitor className="size-4" />,
+    link: "/banner",
+  },
+  {
+    id: "display",
+    title: "Display",
+    icon: <Monitor className="size-4" />,
+    link: "/display",
+  },
   {
     id: "report",
     title: "Report",

@@ -37,3 +37,15 @@ export type PersonWithInvoices = Person & {
   invoices: Invoice[]
   total: number
 }
+
+export type Banner = {
+  id: number
+  type: 'image' | 'youtube' | 'iframe' | 'gdrive'
+  url: string
+  duration: number
+  title: string | null
+  image_source: 'url' | 'gdrive' | 'upload' | null
+  position: number
+  created_at: Date
+  updated_at: Date
+}
