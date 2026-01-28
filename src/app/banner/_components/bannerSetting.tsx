@@ -387,8 +387,8 @@ const BannerSetting = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 h-full overflow-y-auto">
-      <div className="flex justify-between items-center mb-6 overflow-y-auto">
+    <div className="container mx-auto p-6 h-full">
+      <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Banner Setting</h1>
         </div>
