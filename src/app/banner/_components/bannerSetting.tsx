@@ -1,6 +1,6 @@
 "use client";
 
-import { Youtube, Globe, Image as ImageIcon, HardDrive, Trash2, Pencil, Plus, Video } from 'lucide-react';
+import { Youtube, Globe, Image as ImageIcon, HardDrive, Trash2, Pencil, Plus, Video, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -40,6 +40,7 @@ const BannerSetting = () => {
     handleSaveEdit,
     handlePositionChange,
     handleToggleActive,
+    handleSyncDisplays,
   } = useBannerSetting();
 
   const getIconForType = (type: BannerItemType) => {
@@ -164,16 +165,17 @@ const BannerSetting = () => {
         <div>
           <h1 className="text-3xl font-bold">Banner Setting</h1>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="size-4 mr-2" />
-              Tambah Konten
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Tambah Konten Banner</DialogTitle>
+        <div className="flex gap-2">
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="size-4 mr-2" />
+                Tambah Konten
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Tambah Konten Banner</DialogTitle>
               <DialogDescription>
                 Tambah item baru ke rotasi tampilan banner
               </DialogDescription>
@@ -220,6 +222,12 @@ const BannerSetting = () => {
             />
           </DialogContent>
         </Dialog>
+
+        <Button onClick={handleSyncDisplays} variant="outline">
+          <RefreshCw className="size-4 mr-2" />
+          Sync Display
+        </Button>
+      </div>
       </div>
 
       {bannerItems.length === 0 ? (

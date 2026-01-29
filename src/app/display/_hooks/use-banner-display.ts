@@ -56,27 +56,57 @@ export function useBannerDisplay() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const eventSourceRef = useRef<EventSource | null>(null);
 
-  // Fetch banners
+  // Fetch banners function
+  const fetchBanners = useCallback(async () => {
+    try {
+      const response = await fetch('/api/banner');
+      const data = await response.json();
+      if (response.ok) {
+        // Only show active banners
+        const activeBanners = data.banners.filter((b: BannerItem) => b.active !== false);
+        setBanners(activeBanners);
+      }
+    } catch (error) {
+      console.error('Error fetching banners:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Setup SSE connection
   useEffect(() => {
-    const fetchBanners = async () => {
+    const eventSource = new EventSource('/api/banner/events');
+    eventSourceRef.current = eventSource;
+
+    eventSource.onmessage = (event) => {
       try {
-        const response = await fetch('/api/banner');
-        const data = await response.json();
-        if (response.ok) {
-          // Only show active banners
-          const activeBanners = data.banners.filter((b: BannerItem) => b.active !== false);
-          setBanners(activeBanners);
+        const data = JSON.parse(event.data);
+        if (data.type === 'sync') {
+          console.log('Sync received, refreshing banners...');
+          // Refresh banners when sync is triggered
+          fetchBanners();
         }
       } catch (error) {
-        console.error('Error fetching banners:', error);
-      } finally {
-        setLoading(false);
+        console.error('Error parsing SSE message:', error);
       }
     };
 
+    eventSource.onerror = (error) => {
+      console.error('SSE connection error:', error);
+      // EventSource will automatically reconnect
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, [fetchBanners]);
+
+  // Initial fetch
+  useEffect(() => {
     fetchBanners();
-  }, []);
+  }, [fetchBanners]);
 
   // Go to next slide
   const goToNextSlide = useCallback(() => {

@@ -303,6 +303,24 @@ export function useBannerSetting() {
     }
   };
 
+  const handleSyncDisplays = async () => {
+    try {
+      const response = await fetch('/api/banner/sync', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert(data.message || 'Displays synced successfully!');
+      } else {
+        alert('Failed to sync displays');
+      }
+    } catch (error) {
+      console.error('Error syncing displays:', error);
+      alert('Failed to sync displays');
+    }
+  };
+
   return {
     // State
     bannerItems,
@@ -339,5 +357,6 @@ export function useBannerSetting() {
     handleSaveEdit,
     handlePositionChange,
     handleToggleActive,
+    handleSyncDisplays,
   };
 }
