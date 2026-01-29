@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { toast } from 'sonner';
 
 export type BannerItemType = 'image' | 'youtube' | 'video' | 'iframe' | 'gdrive';
 export type ImageSourceType = 'url' | 'gdrive' | 'upload';
@@ -312,16 +313,22 @@ export function useBannerSetting() {
       const data = await response.json();
 
       if (response.ok) {
-        alert(data.message || 'Displays synced successfully!');
+        toast.success(data.message || 'Displays synced successfully!', {
+        style: {
+          '--normal-bg': 'light-dark(var(--color-green-600), var(--color-green-400))',
+          '--normal-text': 'var(--color-white)',
+          '--normal-border': 'light-dark(var(--color-green-600), var(--color-green-400))'
+        } as React.CSSProperties
+      });
       } else if (response.status === 429) {
         // Rate limited
-        alert(data.message || 'Please wait before syncing again');
+        toast.error(data.message || 'Please wait before syncing again');
       } else {
-        alert('Failed to sync displays');
+        toast.error('Failed to sync displays');
       }
     } catch (error) {
       console.error('Error syncing displays:', error);
-      alert('Failed to sync displays');
+      toast.error('Failed to sync displays');
     }
   };
 
