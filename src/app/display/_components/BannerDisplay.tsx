@@ -42,7 +42,7 @@ export const BannerDisplay = () => {
       </div>
 
       {/* Title and Description overlay for images (not for videos) */}
-      {(currentBanner.title || currentBanner.description) && currentBanner.type !== 'youtube' && currentBanner.type !== 'video' && (
+      {currentBanner && (currentBanner.title || currentBanner.description) && currentBanner.type !== 'youtube' && currentBanner.type !== 'video' && (
         <div className="absolute bottom-4 left-20 z-50 max-w-lg">
           <div className="bg-gradient-to-r from-black/80 via-black/60 to-transparent text-white p-4 rounded-lg backdrop-blur-sm">
             {currentBanner.title && (
@@ -57,7 +57,7 @@ export const BannerDisplay = () => {
 
       {/* Only render the current slide */}
       <div className="absolute inset-0" key={currentBanner.id}>
-        {currentBanner.type === 'image' && (
+        {currentBanner?.type === 'image' && currentBanner?.url && (
           <img
             src={currentBanner.url}
             alt={currentBanner.title || 'Banner'}
@@ -65,7 +65,7 @@ export const BannerDisplay = () => {
           />
         )}
 
-        {currentBanner.type === 'youtube' && (
+        {currentBanner?.type === 'youtube' && currentBanner?.url && (
           <YouTubePlayer
             videoId={currentBanner.url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([^?&/]+)/)?.[1] || ''}
             isPlaying={true}
@@ -73,7 +73,7 @@ export const BannerDisplay = () => {
           />
         )}
 
-        {currentBanner.type === 'video' && (
+        {currentBanner?.type === 'video' && currentBanner?.url && (
           <video
             src={currentBanner.url}
             autoPlay
@@ -84,7 +84,7 @@ export const BannerDisplay = () => {
           />
         )}
 
-        {currentBanner.type === 'gdrive' && (
+        {currentBanner?.type === 'gdrive' && currentBanner?.url && (
           (() => {
             const fileId = currentBanner.url.match(/\/d\/([^/]+)/)?.[1];
             if (!fileId) return <div className="text-white flex items-center justify-center h-full">Invalid Drive URL</div>;
@@ -104,7 +104,7 @@ export const BannerDisplay = () => {
           })()
         )}
 
-        {currentBanner.type === 'iframe' && (
+        {currentBanner?.type === 'iframe' && currentBanner?.url && (
           <iframe
             src={currentBanner.url}
             title={currentBanner.title || 'Content'}
