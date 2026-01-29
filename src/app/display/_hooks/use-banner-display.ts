@@ -58,9 +58,18 @@ export function useBannerDisplay() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const fetchBannersRef = useRef<(() => Promise<void>) | null>(null);
+  const isFetchingRef = useRef(false);
 
   // Fetch banners function
   const fetchBanners = useCallback(async () => {
+    // Prevent duplicate fetches
+    if (isFetchingRef.current) {
+      console.log('Already fetching, skipping...');
+      return;
+    }
+
+    isFetchingRef.current = true;
+
     try {
       const response = await fetch('/api/banner');
       const data = await response.json();
@@ -70,14 +79,24 @@ export function useBannerDisplay() {
           .filter((b: BannerItem) => b && b.active !== false)
           .filter((b: BannerItem) => b.id && b.type && b.url); // Validate required fields
 
+        console.log('Fetched', activeBanners.length, 'active banners');
         setBanners(activeBanners);
+
+        // Reset index if out of bounds
+        setCurrentIndex((prev) => {
+          if (activeBanners.length === 0) return 0;
+          if (prev >= activeBanners.length) return activeBanners.length - 1;
+          return prev;
+        });
       }
     } catch (error) {
       console.error('Error fetching banners:', error);
       // Set empty array on error to prevent crashes
       setBanners([]);
+      setCurrentIndex(0);
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   }, []);
 
@@ -133,6 +152,11 @@ export function useBannerDisplay() {
     if (banners.length === 0) return;
 
     const currentBanner = banners[currentIndex];
+
+    // Safety check - ensure banner exists
+    if (!currentBanner || !currentBanner.type) {
+      return;
+    }
 
     // Clear any existing timer
     if (timerRef.current) {
