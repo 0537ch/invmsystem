@@ -65,12 +65,17 @@ export function useBannerDisplay() {
       const response = await fetch('/api/banner');
       const data = await response.json();
       if (response.ok) {
-        // Only show active banners
-        const activeBanners = data.banners.filter((b: BannerItem) => b.active !== false);
+        // Only show active banners with safety checks
+        const activeBanners = (data.banners || [])
+          .filter((b: BannerItem) => b && b.active !== false)
+          .filter((b: BannerItem) => b.id && b.type && b.url); // Validate required fields
+
         setBanners(activeBanners);
       }
     } catch (error) {
       console.error('Error fetching banners:', error);
+      // Set empty array on error to prevent crashes
+      setBanners([]);
     } finally {
       setLoading(false);
     }

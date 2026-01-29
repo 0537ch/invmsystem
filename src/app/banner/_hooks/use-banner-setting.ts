@@ -309,9 +309,13 @@ export function useBannerSetting() {
         method: 'POST',
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        const data = await response.json();
         alert(data.message || 'Displays synced successfully!');
+      } else if (response.status === 429) {
+        // Rate limited
+        alert(data.message || 'Please wait before syncing again');
       } else {
         alert('Failed to sync displays');
       }

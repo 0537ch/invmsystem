@@ -25,6 +25,15 @@ export const BannerDisplay = () => {
 
   const currentBanner = banners[currentIndex];
 
+  // Safety check - ensure currentBanner exists and is valid
+  if (!currentBanner || !currentBanner.id) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center bg-black text-white">
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <div className="relative w-screen h-screen bg-black overflow-hidden">
       {/* Slide Tracker */}
