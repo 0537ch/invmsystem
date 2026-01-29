@@ -57,6 +57,7 @@ export function useBannerDisplay() {
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const fetchBannersRef = useRef<(() => Promise<void>) | null>(null);
 
   // Fetch banners function
   const fetchBanners = useCallback(async () => {
@@ -75,18 +76,25 @@ export function useBannerDisplay() {
     }
   }, []);
 
-  // Setup SSE connection
+  // Keep ref updated
   useEffect(() => {
+    fetchBannersRef.current = fetchBanners;
+  }, [fetchBanners]);
+
+  // Setup SSE connection (only once)
+  useEffect(() => {
+    console.log('Setting up SSE connection...');
     const eventSource = new EventSource('/api/banner/events');
     eventSourceRef.current = eventSource;
 
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        console.log('SSE message received:', data);
         if (data.type === 'sync') {
           console.log('Sync received, refreshing banners...');
-          // Refresh banners when sync is triggered
-          fetchBanners();
+          // Use ref to always get latest fetchBanners function
+          fetchBannersRef.current?.();
         }
       } catch (error) {
         console.error('Error parsing SSE message:', error);
@@ -99,12 +107,14 @@ export function useBannerDisplay() {
     };
 
     return () => {
+      console.log('Closing SSE connection...');
       eventSource.close();
     };
-  }, [fetchBanners]);
+  }, []); // Empty deps = only runs once
 
   // Initial fetch
   useEffect(() => {
+    console.log('Initial fetch of banners...');
     fetchBanners();
   }, [fetchBanners]);
 
