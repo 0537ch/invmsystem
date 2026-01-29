@@ -40,10 +40,12 @@ export type PersonWithInvoices = Person & {
 
 export type Banner = {
   id: number
-  type: 'image' | 'youtube' | 'iframe' | 'gdrive'
+  type: 'image' | 'youtube' | 'video' | 'iframe' | 'gdrive'
   url: string
   duration: number
   title: string | null
+  description: string | null
+  active: boolean
   image_source: 'url' | 'gdrive' | 'upload' | null
   position: number
   created_at: Date

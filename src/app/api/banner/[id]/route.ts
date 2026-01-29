@@ -13,7 +13,7 @@ export async function PUT(
     const id = parseInt(idParam)
     const body = await request.json()
 
-    const { type, url, duration, title, image_source, position } = body
+    const { type, url, duration, title, description, active, image_source, position } = body
 
     if (isNaN(id)) {
       return NextResponse.json(
@@ -63,6 +63,8 @@ export async function PUT(
         url = ${url},
         duration = ${duration},
         title = ${title || null},
+        description = ${description || null},
+        active = COALESCE(${active}, active),
         image_source = ${image_source || null},
         position = COALESCE(${position}, position),
         updated_at = CURRENT_TIMESTAMP

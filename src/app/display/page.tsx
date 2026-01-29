@@ -1,4 +1,4 @@
-import BannerDisplay from "@/app/banner/_components/bannerDisplay";
+import { BannerDisplay } from "./_components/BannerDisplay";
 
 export default function DisplayPage() {
   return <BannerDisplay />;

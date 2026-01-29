@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     const sql = getDb()
     const body = await request.json()
 
-    const { type, url, duration, title, image_source } = body
+    const { type, url, duration, title, description, active, image_source } = body
 
     // Validate required fields
     if (!type || !url) {
@@ -46,8 +46,8 @@ export async function POST(request: Request) {
     const newPosition = (maxPos?.max ?? -1) + 1
 
     const [banner] = await sql<Banner[]>`
-      INSERT INTO banners (type, url, duration, title, image_source, position)
-      VALUES (${type}, ${url}, ${duration || 10}, ${title || null}, ${image_source || null}, ${newPosition})
+      INSERT INTO banners (type, url, duration, title, description, active, image_source, position)
+      VALUES (${type}, ${url}, ${duration || 10}, ${title || null}, ${description || null}, ${active !== undefined ? active : true}, ${image_source || null}, ${newPosition})
       RETURNING *
     `
 

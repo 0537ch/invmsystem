@@ -1,287 +1,46 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { BannerForm } from './BannerForm';
+import { Youtube, Globe, Image as ImageIcon, HardDrive, Trash2, Pencil, Plus, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Trash2, MoveUp, MoveDown, Youtube, Globe, Image as ImageIcon, HardDrive, Pencil } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-
-export type BannerItemType = 'image' | 'youtube' | 'iframe' | 'gdrive';
-export type ImageSourceType = 'url' | 'gdrive' | 'upload';
-export type ContentCategory = 'image' | 'video' | 'html';
-
-export interface BannerItem {
-  id: number;
-  type: BannerItemType;
-  url: string;
-  duration: number;
-  title?: string;
-  imageSource?: ImageSourceType;
-  position?:number;
-}
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { BannerForm } from './BannerForm';
+import { useBannerSetting, type BannerItem, type BannerItemType } from '../_hooks/use-banner-setting';
 
 const BannerSetting = () => {
-  const [bannerItems, setBannerItems] = useState<BannerItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [contentCategory, setContentCategory] = useState<ContentCategory>('image');
-  const [imageSource, setImageSource] = useState<ImageSourceType>('url');
-  const [htmlFile, setHtmlFile] = useState<File | null>(null);
-  const [editHtmlFile, setEditHtmlFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const editFileInputRef = useRef<HTMLInputElement>(null);
-  const [newItem, setNewItem] = useState<Partial<BannerItem>>({
-    type: 'image',
-    url: '',
-    duration: 10,
-    title: '',
-  });
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editContentCategory, setEditContentCategory] = useState<ContentCategory>('image');
-  const [editImageSource, setEditImageSource] = useState<ImageSourceType>('url');
-  const [editingItem, setEditingItem] = useState<Partial<BannerItem>>({
-    type: 'image',
-    url: '',
-    duration: 10,
-    title: '',
-  });
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-
-  // Fetch banners from API
-  const fetchBanners = async () => {
-    try {
-      const response = await fetch('/api/banner');
-      const data = await response.json();
-      if (response.ok) {
-        setBannerItems(data.banners);
-      }
-    } catch (error) {
-      console.error('Error fetching banners:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchBanners();
-  }, []);
-
-  const handleAddItem = async () => {
-    if (contentCategory === 'html' && !htmlFile && !newItem.url) {
-      alert('Silakan pilih file HTML atau masukkan URL');
-      return;
-    }
-
-    if (contentCategory !== 'html' && !newItem.url) {
-      alert('Silakan masukkan URL');
-      return;
-    }
-
-    let itemType: BannerItemType;
-    const finalUrl = newItem.url!;
-
-    if (contentCategory === 'video') {
-      itemType = 'youtube';
-    } else if (contentCategory === 'html') {
-      itemType = 'iframe';
-      if (htmlFile) {
-        // For HTML files, we'd need to upload them first
-        // For now, we'll skip this or you could convert to base64
-        alert('HTML file upload not implemented yet. Please use URL.');
-        return;
-      }
-    } else {
-      if (imageSource === 'gdrive') {
-        itemType = 'gdrive';
-      } else if (imageSource === 'upload') {
-        itemType = 'image';
-        // Image upload would need to be implemented
-        alert('Image upload not implemented yet. Please use URL.');
-        return;
-      } else {
-        itemType = 'image';
-      }
-    }
-
-    try {
-      const response = await fetch('/api/banner', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: itemType,
-          url: finalUrl,
-          duration: contentCategory === 'video' ? 0 : (newItem.duration || 10),
-          title: newItem.title || `${contentCategory}${contentCategory === 'image' && imageSource ? ` (${imageSource})` : ''}` || null,
-          image_source: contentCategory === 'image' ? imageSource : null,
-        }),
-      });
-
-      if (response.ok) {
-        await fetchBanners();
-        setNewItem({ type: 'image', url: '', duration: 10, title: '' });
-        setContentCategory('image');
-        setImageSource('url');
-        setHtmlFile(null);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-        setIsAddDialogOpen(false);
-      }
-    } catch (error) {
-      console.error('Error creating banner:', error);
-      alert('Failed to create banner');
-    }
-  };
-
-  const handleDeleteItem = async (id: number) => {
-    console.log('Deleting banner with ID:', id, 'Type:', typeof id);
-    try {
-      const response = await fetch(`/api/banner/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        await fetchBanners();
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Delete failed:', errorData);
-        alert(errorData.error || 'Failed to delete banner');
-      }
-    } catch (error) {
-      console.error('Error deleting banner:', error);
-      alert('Failed to delete banner');
-    }
-  };
-
-  const handleMoveUp = async (index: number) => {
-    if (index === 0) return;
-    const item = bannerItems[index];
-
-    try {
-      await fetch(`/api/banner/${item.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...item,
-          position: index - 1,
-        }),
-      });
-      await fetchBanners();
-    } catch (error) {
-      console.error('Error moving banner:', error);
-      alert('Failed to move banner');
-    }
-  };
-
-  const handleMoveDown = async (index: number) => {
-    if (index === bannerItems.length - 1) return;
-    const item = bannerItems[index];
-
-    try {
-      await fetch(`/api/banner/${item.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...item,
-          position: index + 1,
-        }),
-      });
-      await fetchBanners();
-    } catch (error) {
-      console.error('Error moving banner:', error);
-      alert('Failed to move banner');
-    }
-  };
-
-  const handleEditItem = (index: number) => {
-    const item = bannerItems[index];
-    setEditingIndex(index);
-    setEditingItem(item);
-    setEditHtmlFile(null);
-
-    if (item.type === 'youtube') {
-      setEditContentCategory('video');
-    } else if (item.type === 'iframe') {
-      setEditContentCategory('html');
-    } else {
-      setEditContentCategory('image');
-      if (item.type === 'gdrive') {
-        setEditImageSource('gdrive');
-      } else if (item.imageSource === 'upload') {
-        setEditImageSource('upload');
-      } else {
-        setEditImageSource('url');
-      }
-    }
-
-    setIsEditDialogOpen(true);
-  };
-
-  const handleSaveEdit = async () => {
-    if (editContentCategory === 'html' && !editHtmlFile && !editingItem.url) {
-      alert('Silakan pilih file HTML atau masukkan URL');
-      return;
-    }
-
-    if (editContentCategory !== 'html' && !editingItem.url) {
-      alert('Silakan masukkan URL');
-      return;
-    }
-
-    let itemType: BannerItemType;
-    const finalUrl = editingItem.url!;
-
-    if (editContentCategory === 'video') {
-      itemType = 'youtube';
-    } else if (editContentCategory === 'html') {
-      itemType = 'iframe';
-      if (editHtmlFile) {
-        alert('HTML file upload not implemented yet. Please use URL.');
-        return;
-      }
-    } else {
-      if (editImageSource === 'gdrive') {
-        itemType = 'gdrive';
-      } else if (editImageSource === 'upload') {
-        itemType = 'image';
-        alert('Image upload not implemented yet. Please use URL.');
-        return;
-      } else {
-        itemType = 'image';
-      }
-    }
-
-    const item = bannerItems[editingIndex!];
-
-    try {
-      const response = await fetch(`/api/banner/${item.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: itemType,
-          url: finalUrl,
-          duration: editContentCategory === 'video' ? 0 : (editingItem.duration || 10),
-          title: editingItem.title || `${editContentCategory}${editContentCategory === 'image' && editImageSource ? ` (${editImageSource})` : ''}` || null,
-          image_source: editContentCategory === 'image' ? editImageSource : null,
-          position: item.position, // Keep same position
-        }),
-      });
-
-      if (response.ok) {
-        await fetchBanners();
-        setIsEditDialogOpen(false);
-        setEditingIndex(null);
-        setEditHtmlFile(null);
-        if (editFileInputRef.current) {
-          editFileInputRef.current.value = '';
-        }
-      }
-    } catch (error) {
-      console.error('Error updating banner:', error);
-      alert('Failed to update banner');
-    }
-  };
+  const {
+    bannerItems,
+    loading,
+    isAddDialogOpen,
+    setIsAddDialogOpen,
+    contentCategory,
+    setContentCategory,
+    imageSource,
+    setImageSource,
+    htmlFile,
+    setHtmlFile,
+    editHtmlFile,
+    setEditHtmlFile,
+    fileInputRef,
+    editFileInputRef,
+    newItem,
+    setNewItem,
+    isEditDialogOpen,
+    setIsEditDialogOpen,
+    editContentCategory,
+    setEditContentCategory,
+    editImageSource,
+    setEditImageSource,
+    editingItem,
+    setEditingItem,
+    handleAddItem,
+    handleDeleteItem,
+    handleEditItem,
+    handleSaveEdit,
+    handlePositionChange,
+    handleToggleActive,
+  } = useBannerSetting();
 
   const getIconForType = (type: BannerItemType) => {
     switch (type) {
@@ -289,6 +48,8 @@ const BannerSetting = () => {
         return <ImageIcon className="size-4" />;
       case 'youtube':
         return <Youtube className="size-4" />;
+      case 'video':
+        return <Video className="size-4" />;
       case 'gdrive':
         return <HardDrive className="size-4" />;
       case 'iframe':
@@ -332,6 +93,17 @@ const BannerSetting = () => {
           </div>
         );
       }
+      case 'video':
+        return (
+          <div className={previewClass}>
+            <div className="text-center">
+              <Video className="size-12 text-purple-500 mx-auto mb-2" />
+              <div className="text-sm font-medium">Video File</div>
+              <div className="text-xs text-muted-foreground mt-1 truncate px-4">{item.url}</div>
+            </div>
+            <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">Video</div>
+          </div>
+        );
       case 'gdrive': {
         const fileId = item.url.match(/\/d\/([^/]+)/)?.[1] || item.url.match(/id=([^/&]+)/)?.[1];
         if (fileId) {
@@ -456,86 +228,137 @@ const BannerSetting = () => {
           <p className="text-muted-foreground text-sm">Klik Tambah Konten untuk memulai</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {bannerItems.map((item, index) => (
-            <div key={item.id} className="border rounded-lg overflow-hidden bg-card hover:shadow-md transition-shadow">
-              {/* Preview Area */}
-              <div className="relative">
-                {renderPreview(item)}
-                {/* Position Badge */}
-                <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full">
-                  #{index + 1}
-                </div>
-              </div>
+        <div className="rounded-md border">
+          <table className="w-full caption-bottom text-sm">
+            <thead className="[&_tr]:border-b">
+              <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                <th className="h-10 px-2 text-left align-middle font-medium w-20">Posisi ↕</th>
+                <th className="h-10 px-2 text-left align-middle font-medium w-32">Preview</th>
+                <th className="h-10 px-2 text-left align-middle font-medium">Judul</th>
+                <th className="h-10 px-2 text-left align-middle font-medium w-24">Tipe</th>
+                <th className="h-10 px-2 text-left align-middle font-medium">URL</th>
+                <th className="h-10 px-2 text-left align-middle font-medium w-20">Durasi</th>
+                <th className="h-10 px-2 text-left align-middle font-medium w-24">Aktif</th>
+                <th className="h-10 px-2 text-left align-middle font-medium w-40">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="[&_tr:last-child]:border-0">
+              {bannerItems.map((item, index) => (
+                <tr key={item.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                  {/* Position */}
+                  <td className="p-2 align-middle">
+                    <Input
+                      key={`${item.id}-${index}`}
+                      type="number"
+                      min={1}
+                      max={bannerItems.length}
+                      defaultValue={index + 1}
+                      className="w-16 h-8 text-center"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          const input = e.target as HTMLInputElement;
+                          const newPosition = parseInt(input.value);
+                          if (!isNaN(newPosition)) {
+                            handlePositionChange(item, newPosition);
+                          }
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newPosition = parseInt(e.target.value);
+                        if (!isNaN(newPosition) && newPosition !== index + 1) {
+                          handlePositionChange(item, newPosition);
+                        } else {
+                          e.target.value = String(index + 1);
+                        }
+                      }}
+                    />
+                  </td>
 
-              {/* Content Area */}
-              <div className="p-4 space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    {getIconForType(item.type)}
-                    <h3 className="font-semibold truncate">{item.title || item.type}</h3>
-                  </div>
-                </div>
+                  {/* Preview */}
+                  <td className="p-2 align-middle">
+                    <div className="w-32 h-20 rounded border-2 border-dashed flex items-center justify-center bg-muted/50 overflow-hidden relative">
+                      {item.type === 'image' ? (
+                        <img src={item.url} alt="Preview" className="max-w-full max-h-full object-contain" onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }} />
+                      ) : item.type === 'youtube' ? (
+                        <div className="text-center">
+                          {getIconForType(item.type)}
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          {getIconForType(item.type)}
+                        </div>
+                      )}
+                    </div>
+                  </td>
 
-                <p className="text-xs text-muted-foreground font-mono truncate" title={item.url}>
-                  {item.url}
-                </p>
+                  {/* Title */}
+                  <td className="p-2 align-middle">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{item.title || item.type}</span>
+                    </div>
+                  </td>
 
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <div className="flex items-center gap-2">
-                    {item.type !== 'youtube' && (
-                      <Badge variant="outline" className="text-xs">
-                        {item.duration}s
-                      </Badge>
+                  {/* Type */}
+                  <td className="p-2 align-middle">
+                    <div className="flex items-center gap-1">
+                      {getIconForType(item.type)}
+                      <span className="text-xs capitalize">{item.type}</span>
+                    </div>
+                  </td>
+
+                  {/* URL */}
+                  <td className="p-2 align-middle">
+                    <div className="font-mono text-xs text-muted-foreground truncate max-w-md" title={item.url}>
+                      {item.url}
+                    </div>
+                  </td>
+
+                  {/* Duration */}
+                  <td className="p-2 align-middle">
+                    {item.type !== 'youtube' && item.type !== 'video' ? (
+                      <span className="text-xs">{item.duration}s</span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">-</span>
                     )}
-                    {item.imageSource && (
-                      <Badge variant="outline" className="text-xs">
-                        {item.imageSource}
-                      </Badge>
-                    )}
-                  </div>
+                  </td>
 
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-1">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="size-8"
-                      onClick={() => handleMoveUp(index)}
-                      disabled={index === 0}
-                    >
-                      <MoveUp className="size-3" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="size-8"
-                      onClick={() => handleMoveDown(index)}
-                      disabled={index === bannerItems.length - 1}
-                    >
-                      <MoveDown className="size-3" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="size-8"
-                      onClick={() => handleEditItem(index)}
-                    >
-                      <Pencil className="size-3" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="size-8"
-                      onClick={() => handleDeleteItem(item.id)}
-                    >
-                      <Trash2 className="size-3 text-destructive" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+                  {/* Active */}
+                  <td className="p-2 align-middle">
+                    <Switch
+                      checked={item.active !== false}
+                      onCheckedChange={() => handleToggleActive(item)}
+                    />
+                  </td>
+
+                  {/* Actions */}
+                  <td className="p-2 align-middle">
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-8"
+                        onClick={() => handleEditItem(index)}
+                        title="Edit"
+                      >
+                        <Pencil className="size-3" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-8"
+                        onClick={() => handleDeleteItem(item.id)}
+                        title="Delete"
+                      >
+                        <Trash2 className="size-3 text-destructive" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

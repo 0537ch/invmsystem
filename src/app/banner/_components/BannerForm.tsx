@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Upload } from 'lucide-react';
-import type { BannerItem, ContentCategory, ImageSourceType } from './bannerSetting';
+import type { BannerItem, ContentCategory, ImageSourceType } from '../_hooks/use-banner-setting';
 
 interface BannerFormProps {
   mode: 'add' | 'edit';
@@ -51,6 +51,16 @@ export const BannerForm: React.FC<BannerFormProps> = ({
         />
       </div>
 
+      <div className="space-y-2">
+        <Label>Deskripsi (opsional)</Label>
+        <textarea
+          placeholder="Deskripsi singkat tentang banner ini..."
+          value={data.description || ''}
+          onChange={(e) => onDataChange({ ...data, description: e.target.value })}
+          className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+      </div>
+
       {/* Main Category Selection */}
       <div className="space-y-2">
         <Label>Tipe Konten</Label>
@@ -63,7 +73,8 @@ export const BannerForm: React.FC<BannerFormProps> = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="image">Gambar</SelectItem>
-            <SelectItem value="video">Video (YouTube)</SelectItem>
+            <SelectItem value="youtube">YouTube</SelectItem>
+            <SelectItem value="video">Video File (MP4, WebM)</SelectItem>
             <SelectItem value="html">HTML / Website</SelectItem>
           </SelectContent>
         </Select>
@@ -145,7 +156,8 @@ export const BannerForm: React.FC<BannerFormProps> = ({
         ) : (
           <>
             <Label>
-              {category === 'video' ? 'URL YouTube' :
+              {category === 'youtube' ? 'URL YouTube' :
+               category === 'video' ? 'URL Video File' :
                imageSource === 'gdrive' ? 'URL Google Drive' :
                imageSource === 'upload' ? 'File (Segera Hadir)' : 'URL Gambar'}
             </Label>
@@ -157,7 +169,8 @@ export const BannerForm: React.FC<BannerFormProps> = ({
             ) : (
               <Input
                 placeholder={
-                  category === 'video' ? 'https://youtube.com/watch?v=...' :
+                  category === 'youtube' ? 'https://youtube.com/watch?v=...' :
+                  category === 'video' ? 'https://example.com/video.mp4' :
                   imageSource === 'gdrive' ? 'https://drive.google.com/file/d/.../view' :
                   'https://example.com/image.jpg'
                 }
@@ -167,7 +180,8 @@ export const BannerForm: React.FC<BannerFormProps> = ({
               />
             )}
             <p className="text-xs text-muted-foreground">
-              {category === 'video' ? 'Tempel URL video YouTube' :
+              {category === 'youtube' ? 'Tempel URL video YouTube' :
+               category === 'video' ? 'Tempel URL file video (MP4, WebM, dll)' :
                imageSource === 'gdrive' ? 'Tempel tautan berbagi Google Drive' :
                imageSource === 'upload' ? 'Fitur upload file segera hadir' :
                'Tempel URL gambar langsung'}
@@ -177,7 +191,7 @@ export const BannerForm: React.FC<BannerFormProps> = ({
       </div>
 
       {/* Duration for images and html only */}
-      {category !== 'video' && (
+      {category !== 'youtube' && category !== 'video' && (
         <div className="space-y-2">
           <Label>Durasi (detik)</Label>
           <Input
