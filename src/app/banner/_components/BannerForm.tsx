@@ -10,6 +10,9 @@ import {
 } from '@/components/ui/select';
 import { Upload } from 'lucide-react';
 import type { BannerItem, ContentCategory, ImageSourceType } from '../_hooks/use-banner-setting';
+import { DatePickerWithRange } from './datepicker';
+import { type DateRange } from 'react-day-picker';
+import { useEffect, useState, useRef } from 'react';
 
 interface BannerFormProps {
   mode: 'add' | 'edit';
@@ -40,6 +43,56 @@ export const BannerForm: React.FC<BannerFormProps> = ({
   onCancel,
   fileInputRef,
 }) => {
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    const convertToDate = (date: typeof data.start_date): Date | undefined => {
+      if (!date) return undefined;
+      if (date instanceof Date) return date;
+      const parsed = new Date(date);
+      return isNaN(parsed.getTime()) ? undefined : parsed;
+    };
+
+    if (data.start_date || data.end_date) {
+      return {
+        from: convertToDate(data.start_date),
+        to: convertToDate(data.end_date),
+      };
+    }
+    return undefined;
+  });
+
+  const prevDataRef = useRef<{ start_date?: typeof data.start_date; end_date?: typeof data.end_date } | null>(null);
+
+  useEffect(() => {
+    const prev = prevDataRef.current;
+
+    const hasChanged = !prev || prev.start_date !== data.start_date || prev.end_date !== data.end_date;
+
+    if (hasChanged) {
+      const convertToDate = (date: typeof data.start_date): Date | undefined => {
+        if (!date) return undefined;
+        if (date instanceof Date) return date;
+        // Already a date string (ISO format like "2026-01-22T00:00:00.000Z" or "2026-01-22")
+        const parsed = new Date(date);
+        return isNaN(parsed.getTime()) ? undefined : parsed;
+      };
+
+      setDateRange({
+        from: convertToDate(data.start_date),
+        to: convertToDate(data.end_date),
+      });
+    }
+
+    prevDataRef.current = { start_date: data.start_date, end_date: data.end_date };
+  }, [data.start_date, data.end_date]);
+
+  const handleDateChange = (range: DateRange | undefined) => {
+    setDateRange(range);
+    onDataChange({
+      ...data,
+      start_date: range?.from,
+      end_date: range?.to,
+    });
+  };
   return (
     <div className="space-y-4 py-4">
       <div className="space-y-2">
@@ -206,6 +259,12 @@ export const BannerForm: React.FC<BannerFormProps> = ({
           <p className="text-xs text-muted-foreground">Berapa lama konten ditampilkan</p>
         </div>
       )}
+
+      <DatePickerWithRange
+        value={dateRange}
+        onChange={handleDateChange}
+        label="Schedule (optional)"
+      />
 
       {/* Dialog Footer */}
       <div className="flex justify-end gap-2 pt-4">

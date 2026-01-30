@@ -3,7 +3,6 @@
 import React, { useRef, useEffect } from 'react';
 import { loadYouTubeAPI } from '../_hooks/use-banner-display';
 
-// YouTube API type definitions
 interface YouTubePlayer {
   playVideo: () => void;
   pauseVideo: () => void;
@@ -80,7 +79,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoId, isPlaying
     };
   }, [videoId]);
 
-  // Control playback based on isPlaying prop
   useEffect(() => {
     if (!isReadyRef.current || !playerRef.current) return;
 

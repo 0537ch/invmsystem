@@ -1,16 +1,13 @@
 import { NextResponse } from 'next/server'
 import { broadcastSync } from '../events/route'
 
-// Simple rate limiting to prevent abuse
 let lastSyncTime = 0;
-const SYNC_COOLDOWN = 500; // 500ms minimum between syncs
+const SYNC_COOLDOWN = 500;
 
-// POST - Trigger sync to all connected displays
 export async function POST() {
   try {
     const now = Date.now();
 
-    // Rate limiting - prevent rapid sync spamming
     if (now - lastSyncTime < SYNC_COOLDOWN) {
       return NextResponse.json({
         success: false,
@@ -20,7 +17,6 @@ export async function POST() {
 
     lastSyncTime = now;
 
-    // Broadcast sync event to all connected displays
     const clientCount = broadcastSync()
 
     return NextResponse.json({

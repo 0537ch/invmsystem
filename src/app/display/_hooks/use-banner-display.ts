@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { BannerItem } from '@/app/banner/_hooks/use-banner-setting';
 
-// YouTube API type definitions
 interface YouTubePlayer {
   playVideo: () => void;
   pauseVideo: () => void;
@@ -18,7 +17,6 @@ declare global {
   }
 }
 
-// YouTube API loader - singleton pattern
 let youtubeAPILoaded = false;
 let youtubeAPILoading = false;
 const youtubeAPICallbacks: Array<() => void> = [];
@@ -60,11 +58,8 @@ export function useBannerDisplay() {
   const fetchBannersRef = useRef<(() => Promise<void>) | null>(null);
   const isFetchingRef = useRef(false);
 
-  // Fetch banners function
   const fetchBanners = useCallback(async () => {
-    // Prevent duplicate fetches
     if (isFetchingRef.current) {
-      console.log('Already fetching, skipping...');
       return;
     }
 
@@ -74,15 +69,12 @@ export function useBannerDisplay() {
       const response = await fetch('/api/banner');
       const data = await response.json();
       if (response.ok) {
-        // Only show active banners with safety checks
         const activeBanners = (data.banners || [])
           .filter((b: BannerItem) => b && b.active !== false)
-          .filter((b: BannerItem) => b.id && b.type && b.url); // Validate required fields
+          .filter((b: BannerItem) => b.id && b.type && b.url);
 
-        console.log('Fetched', activeBanners.length, 'active banners');
         setBanners(activeBanners);
 
-        // Reset index if out of bounds
         setCurrentIndex((prev) => {
           if (activeBanners.length === 0) return 0;
           if (prev >= activeBanners.length) return activeBanners.length - 1;
@@ -91,7 +83,6 @@ export function useBannerDisplay() {
       }
     } catch (error) {
       console.error('Error fetching banners:', error);
-      // Set empty array on error to prevent crashes
       setBanners([]);
       setCurrentIndex(0);
     } finally {
@@ -100,24 +91,18 @@ export function useBannerDisplay() {
     }
   }, []);
 
-  // Keep ref updated
   useEffect(() => {
     fetchBannersRef.current = fetchBanners;
   }, [fetchBanners]);
 
-  // Setup SSE connection (only once)
   useEffect(() => {
-    console.log('Setting up SSE connection...');
     const eventSource = new EventSource('/api/banner/events');
     eventSourceRef.current = eventSource;
 
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log('SSE message received:', data);
         if (data.type === 'sync') {
-          console.log('Sync received, refreshing banners...');
-          // Use ref to always get latest fetchBanners function
           fetchBannersRef.current?.();
         }
       } catch (error) {
@@ -127,49 +112,39 @@ export function useBannerDisplay() {
 
     eventSource.onerror = (error) => {
       console.error('SSE connection error:', error);
-      // EventSource will automatically reconnect
     };
 
     return () => {
-      console.log('Closing SSE connection...');
       eventSource.close();
     };
-  }, []); // Empty deps = only runs once
+  }, []);
 
-  // Initial fetch
   useEffect(() => {
-    console.log('Initial fetch of banners...');
     fetchBanners();
   }, [fetchBanners]);
 
-  // Go to next slide
   const goToNextSlide = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % banners.length);
   }, [banners.length]);
 
-  // Handle timing for current slide
   useEffect(() => {
     if (banners.length === 0) return;
 
     const currentBanner = banners[currentIndex];
 
-    // Safety check - ensure banner exists
     if (!currentBanner || !currentBanner.type) {
       return;
     }
 
-    // Clear any existing timer
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
 
-    // For YouTube and video files, let the onEnd callback handle timing
     if (currentBanner.type === 'youtube' || currentBanner.type === 'video') {
       return;
     }
 
-    // For other types, use duration
     const duration = currentBanner.duration ?? 10;
     if (duration <= 0) return;
 

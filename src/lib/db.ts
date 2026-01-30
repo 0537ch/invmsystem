@@ -12,10 +12,18 @@ export function getDb() {
 
     sql = postgres(url, {
       ssl: 'require',
+      prepare: false,  // Disable prepared statements to avoid caching issues
     })
   }
 
   return sql
+}
+
+export function resetDbConnection() {
+  if (sql) {
+    sql.end({ timeout: 5 })
+    sql = null
+  }
 }
 
 export type Person = {
@@ -50,4 +58,6 @@ export type Banner = {
   position: number
   created_at: Date
   updated_at: Date
+  start_date: string | null
+  end_date: string | null
 }

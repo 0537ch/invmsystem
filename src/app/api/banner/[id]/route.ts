@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import { getDb } from '@/lib/db'
 import type { Banner } from '@/lib/db'
 
-// PUT update banner
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -13,7 +12,53 @@ export async function PUT(
     const id = parseInt(idParam)
     const body = await request.json()
 
-    const { type, url, duration, title, description, active, image_source, position } = body
+    const {
+      type,
+      url,
+      duration = 10,
+      title = null,
+      description = null,
+      active = undefined,
+      image_source = null,
+      position = undefined,
+      start_date = null,
+      end_date = null
+    } = body
+
+    const formatDate = (date: string | Date | null): string | null => {
+      if (!date) return null;
+      if (typeof date === 'string') return date;
+
+      // Get date in local timezone (Indonesia time)
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const startDate = formatDate(start_date);
+    const endDate = formatDate(end_date);
+
+    console.log('PUT Request body:', body)
+    console.log('Destructured values:', {
+      type,
+      url,
+      duration,
+      title,
+      description,
+      active,
+      image_source,
+      position,
+      startDate,
+      endDate
+    })
+
+    if (!type || !url) {
+      return NextResponse.json(
+        { error: 'Missing required fields: type and url' },
+        { status: 400 }
+      )
+    }
 
     if (isNaN(id)) {
       return NextResponse.json(
@@ -22,7 +67,6 @@ export async function PUT(
       )
     }
 
-    // Get current banner to check old position
     const [currentBanner] = await sql<Banner[]>`
       SELECT * FROM banners WHERE id = ${id}
     `
@@ -34,20 +78,17 @@ export async function PUT(
       )
     }
 
-    // If position is being updated
     if (position !== undefined && position !== currentBanner.position) {
       const oldPosition = currentBanner.position
       const newPosition = position
 
       if (newPosition < oldPosition) {
-        // Moving up: increment positions of items in [newPosition, oldPosition-1]
         await sql`
           UPDATE banners
           SET position = position + 1
           WHERE position >= ${newPosition} AND position < ${oldPosition} AND id != ${id}
         `
       } else {
-        // Moving down: decrement positions of items in [oldPosition+1, newPosition]
         await sql`
           UPDATE banners
           SET position = position - 1
@@ -62,11 +103,13 @@ export async function PUT(
         type = ${type},
         url = ${url},
         duration = ${duration},
-        title = ${title || null},
-        description = ${description || null},
-        active = COALESCE(${active}, active),
-        image_source = ${image_source || null},
-        position = COALESCE(${position}, position),
+        title = ${title},
+        description = ${description},
+        ${active !== undefined ? sql`active = ${active},` : sql``}
+        image_source = ${image_source},
+        ${position !== undefined ? sql`position = ${position},` : sql``}
+        start_date = ${startDate},
+        end_date = ${endDate},
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ${id}
       RETURNING *
@@ -82,7 +125,6 @@ export async function PUT(
   }
 }
 
-// DELETE banner
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -112,7 +154,6 @@ export async function DELETE(
       )
     }
 
-    // Reorder remaining banners
     await sql`
       UPDATE banners
       SET position = position - 1

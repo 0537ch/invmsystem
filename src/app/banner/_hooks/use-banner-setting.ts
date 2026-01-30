@@ -15,6 +15,8 @@ export interface BannerItem {
   active?: boolean;
   imageSource?: ImageSourceType;
   position?: number;
+  start_date?: string | Date | null;
+  end_date?: string | Date | null;
 }
 
 export function useBannerSetting() {
@@ -46,7 +48,6 @@ export function useBannerSetting() {
   });
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  // Fetch banners from API
   const fetchBanners = async () => {
     try {
       const response = await fetch('/api/banner');
@@ -112,6 +113,8 @@ export function useBannerSetting() {
           title: newItem.title || `${contentCategory}${contentCategory === 'image' && imageSource ? ` (${imageSource})` : ''}` || null,
           description: newItem.description || null,
           image_source: contentCategory === 'image' ? imageSource : null,
+          start_date: newItem.start_date || null,
+          end_date: newItem.end_date || null
         }),
       });
 
@@ -133,7 +136,6 @@ export function useBannerSetting() {
   };
 
   const handleDeleteItem = async (id: number) => {
-    console.log('Deleting banner with ID:', id, 'Type:', typeof id);
     try {
       const response = await fetch(`/api/banner/${id}`, {
         method: 'DELETE',
@@ -215,8 +217,6 @@ export function useBannerSetting() {
     }
 
     const item = bannerItems[editingIndex!];
-    // Use the current array index as the position, not item.position
-    // This ensures the position matches the visual order
     const currentPosition = editingIndex!;
 
     try {
@@ -231,6 +231,8 @@ export function useBannerSetting() {
           description: editingItem.description || null,
           image_source: editContentCategory === 'image' ? editImageSource : null,
           position: currentPosition,
+          start_date: editingItem.start_date || null,
+          end_date: editingItem.end_date || null,
         }),
       });
 
@@ -250,16 +252,15 @@ export function useBannerSetting() {
   };
 
   const handlePositionChange = async (item: BannerItem, newPosition: number) => {
-    // Find the current array index (visual position)
     const currentIndex = bannerItems.findIndex(b => b.id === item.id);
-    const targetPosition = newPosition - 1; // Convert to 0-based index
+    const targetPosition = newPosition - 1;
 
     if (targetPosition < 0 || targetPosition >= bannerItems.length) {
       alert(`Posisi harus antara 1 dan ${bannerItems.length}`);
       return;
     }
 
-    if (currentIndex === targetPosition) return; // No change needed
+    if (currentIndex === targetPosition) return;
 
     try {
       const response = await fetch(`/api/banner/${item.id}`, {
@@ -321,7 +322,6 @@ export function useBannerSetting() {
         } as React.CSSProperties
       });
       } else if (response.status === 429) {
-        // Rate limited
         toast.error(data.message || 'Please wait before syncing again');
       } else {
         toast.error('Failed to sync displays');
@@ -333,7 +333,6 @@ export function useBannerSetting() {
   };
 
   return {
-    // State
     bannerItems,
     loading,
     isAddDialogOpen,
@@ -360,7 +359,6 @@ export function useBannerSetting() {
     setEditingItem,
     editingIndex,
     setEditingIndex,
-    // Actions
     fetchBanners,
     handleAddItem,
     handleDeleteItem,

@@ -25,7 +25,6 @@ export const BannerDisplay = () => {
 
   const currentBanner = banners[currentIndex];
 
-  // Safety check - ensure currentBanner exists and is valid
   if (!currentBanner || !currentBanner.id) {
     return (
       <div className="w-screen h-screen flex items-center justify-center bg-black text-white">
@@ -41,7 +40,6 @@ export const BannerDisplay = () => {
         {currentIndex + 1}/{banners.length}
       </div>
 
-      {/* Title and Description overlay for images (not for videos) */}
       {currentBanner && (currentBanner.title || currentBanner.description) && currentBanner.type !== 'youtube' && currentBanner.type !== 'video' && (
         <div className="absolute bottom-4 left-20 z-50 max-w-lg">
           <div className="bg-gradient-to-r from-black/80 via-black/60 to-transparent text-white p-4 rounded-lg backdrop-blur-sm">
@@ -55,7 +53,6 @@ export const BannerDisplay = () => {
         </div>
       )}
 
-      {/* Only render the current slide */}
       <div className="absolute inset-0" key={currentBanner.id}>
         {currentBanner?.type === 'image' && currentBanner?.url && (
           <img
