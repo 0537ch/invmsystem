@@ -173,7 +173,7 @@ const BannerSetting = () => {
                 Tambah Konten
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Tambah Konten Banner</DialogTitle>
               <DialogDescription>
@@ -199,7 +199,7 @@ const BannerSetting = () => {
 
         {/* Edit Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Konten Banner</DialogTitle>
               <DialogDescription>

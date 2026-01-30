@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getDb } from '@/lib/db'
-import type { Banner } from '@/lib/db'
+import type { Banner, Location } from '@/lib/db'
 
 export async function PUT(
   request: Request,
@@ -22,14 +22,14 @@ export async function PUT(
       image_source = null,
       position = undefined,
       start_date = null,
-      end_date = null
+      end_date = null,
+      location_ids = undefined
     } = body
 
     const formatDate = (date: string | Date | null): string | null => {
       if (!date) return null;
       if (typeof date === 'string') return date;
 
-      // Get date in local timezone (Indonesia time)
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
@@ -38,20 +38,6 @@ export async function PUT(
 
     const startDate = formatDate(start_date);
     const endDate = formatDate(end_date);
-
-    console.log('PUT Request body:', body)
-    console.log('Destructured values:', {
-      type,
-      url,
-      duration,
-      title,
-      description,
-      active,
-      image_source,
-      position,
-      startDate,
-      endDate
-    })
 
     if (!type || !url) {
       return NextResponse.json(
@@ -115,7 +101,26 @@ export async function PUT(
       RETURNING *
     `
 
-    return NextResponse.json({ banner })
+    if (location_ids !== undefined) {
+      await sql`
+        DELETE FROM banner_locations WHERE banner_id = ${id}
+      `
+
+      if (location_ids.length > 0) {
+        const values = location_ids.map(locId => [id, locId])
+        await sql`INSERT INTO banner_locations (banner_id, location_id) VALUES ${sql(values)}`
+      }
+    }
+
+    const locations = await sql<Location[]>`
+      SELECT l.*
+      FROM locations l
+      INNER JOIN banner_locations bl ON l.id = bl.location_id
+      WHERE bl.banner_id = ${id}
+      ORDER BY l.name ASC
+    `
+
+    return NextResponse.json({ banner: { ...banner, locations } })
   } catch (error) {
     console.error('Error updating banner:', error)
     return NextResponse.json(

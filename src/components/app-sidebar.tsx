@@ -10,7 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
-  FileText, MessageCircleWarning, Monitor
+  FileText, MessageCircleWarning, Monitor, MapPin, Image
 } from "lucide-react";
 import type { Route } from "./nav-main";
 import DashboardNavigation from "./nav-main";
@@ -18,9 +18,15 @@ import DashboardNavigation from "./nav-main";
 const dashboardRoutes: Route[] = [
   {
     id: "banner",
-    title: "Banner",
-    icon: <Monitor className="size-4" />,
+    title: "Banners",
+    icon: <Image className="size-4" />,
     link: "/banner",
+  },
+  {
+    id: "locations",
+    title: "Locations",
+    icon: <MapPin className="size-4" />,
+    link: "/locations",
   },
   {
     id: "display",
@@ -50,7 +56,7 @@ export function AppSidebar() {
             : "flex-row items-center justify-between"
         )}
       >
-        <a href="#" className="flex items-center gap-2">
+        <a href="/banner" className="flex items-center gap-2">
           <MessageCircleWarning className="h-8 w-8"/>
           {!isCollapsed && (
             <span className="font-semibold text-black dark:text-white">

@@ -60,4 +60,12 @@ export type Banner = {
   updated_at: Date
   start_date: string | null
   end_date: string | null
+  locations?: Location[]
+}
+
+export type Location = {
+  id: number
+  name: string
+  slug: string
+  created_at: Date
 }

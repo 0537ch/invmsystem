@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getDb } from '@/lib/db'
-import type { Banner } from '@/lib/db'
+import type { Banner, Location } from '@/lib/db'
 
 export async function GET() {
   try {
@@ -11,7 +11,23 @@ export async function GET() {
       ORDER BY position ASC
     `
 
-    return NextResponse.json({ banners })
+    const bannersWithLocations = await Promise.all(
+      banners.map(async (banner) => {
+        const locations = await sql<Location[]>`
+          SELECT l.*
+          FROM locations l
+          INNER JOIN banner_locations bl ON l.id = bl.location_id
+          WHERE bl.banner_id = ${banner.id}
+          ORDER BY l.name ASC
+        `
+        return {
+          ...banner,
+          locations,
+        }
+      })
+    )
+
+    return NextResponse.json({ banners: bannersWithLocations })
   } catch (error) {
     console.error('Error fetching banners:', error)
     return NextResponse.json(
@@ -35,14 +51,14 @@ export async function POST(request: Request) {
       active = true,
       image_source = null,
       start_date = null,
-      end_date = null
+      end_date = null,
+      location_ids = []
     } = body
 
     const formatDate = (date: string | Date | null): string | null => {
       if (!date) return null;
       if (typeof date === 'string') return date;
 
-      // Get date in local timezone (Indonesia time)
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
@@ -71,7 +87,20 @@ export async function POST(request: Request) {
       RETURNING *
     `
 
-    return NextResponse.json({ banner }, { status: 201 })
+    if (location_ids.length > 0) {
+      const values = location_ids.map(locId => [banner.id, locId])
+      await sql`INSERT INTO banner_locations (banner_id, location_id) VALUES ${sql(values)}`
+    }
+
+    const locations = await sql<Location[]>`
+      SELECT l.*
+      FROM locations l
+      INNER JOIN banner_locations bl ON l.id = bl.location_id
+      WHERE bl.banner_id = ${banner.id}
+      ORDER BY l.name ASC
+    `
+
+    return NextResponse.json({ banner: { ...banner, locations } }, { status: 201 })
   } catch (error) {
     console.error('Error creating banner:', error)
     return NextResponse.json(

@@ -1,0 +1,139 @@
+"use client";
+
+import React, { useEffect } from 'react';
+import { useLocationBannerDisplay } from '../../_hooks/use-location-banner-display';
+import { YouTubePlayer } from '../../_components/YouTubePlayer';
+
+export const BannerDisplay = ({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) => {
+  const [slug, setSlug] = React.useState<string | null>(null);
+
+  useEffect(() => {
+    params.then((p) => {
+      setSlug(p.slug);
+    });
+  }, [params]);
+
+  const { banners, location, loading, notFound, currentIndex, goToNextSlide } =
+    useLocationBannerDisplay(slug ?? '');
+
+  if (loading) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center bg-black text-white">
+        Loading...
+      </div>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center bg-black text-white text-2xl">
+        Location not found
+      </div>
+    );
+  }
+
+  if (banners.length === 0) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center bg-black text-white text-2xl">
+        No Content
+      </div>
+    );
+  }
+
+  const currentBanner = banners[currentIndex];
+
+  if (!currentBanner || !currentBanner.id) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center bg-black text-white">
+        Loading...
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-screen h-screen bg-black overflow-hidden">
+      <div className="absolute top-4 left-4 z-50 bg-black/70 text-white px-4 py-2 rounded-lg font-mono text-lg backdrop-blur-sm">
+        {location?.name || 'Display'}
+      </div>
+
+      <div className="absolute bottom-4 left-4 z-50 bg-black/70 text-white px-4 py-2 rounded-lg font-mono text-lg backdrop-blur-sm">
+        {currentIndex + 1}/{banners.length}
+      </div>
+
+      {currentBanner && (currentBanner.title || currentBanner.description) && currentBanner.type !== 'youtube' && currentBanner.type !== 'video' && (
+        <div className="absolute bottom-4 left-20 z-50 max-w-lg">
+          <div className="bg-gradient-to-r from-black/80 via-black/60 to-transparent text-white p-4 rounded-lg backdrop-blur-sm">
+            {currentBanner.title && (
+              <h2 className="text-xl font-bold mb-1">{currentBanner.title}</h2>
+            )}
+            {currentBanner.description && (
+              <p className="text-sm text-gray-200">{currentBanner.description}</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="absolute inset-0" key={currentBanner.id}>
+        {currentBanner?.type === 'image' && currentBanner?.url && (
+          <img
+            src={currentBanner.url}
+            alt={currentBanner.title || 'Banner'}
+            className="w-full h-full object-contain"
+          />
+        )}
+
+        {currentBanner?.type === 'youtube' && currentBanner?.url && (
+          <YouTubePlayer
+            videoId={currentBanner.url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([^?&/]+)/)?.[1] || ''}
+            isPlaying={true}
+            onEnd={goToNextSlide}
+          />
+        )}
+
+        {currentBanner?.type === 'video' && currentBanner?.url && (
+          <video
+            src={currentBanner.url}
+            autoPlay
+            controls
+            playsInline
+            className="w-full h-full object-contain"
+            onEnded={goToNextSlide}
+          />
+        )}
+
+        {currentBanner?.type === 'gdrive' && currentBanner?.url && (
+          (() => {
+            const fileId = currentBanner.url.match(/\/d\/([^/]+)/)?.[1];
+            if (!fileId) return <div className="text-white flex items-center justify-center h-full">Invalid Drive URL</div>;
+            const directImageUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w3840`;
+
+            return (
+              <img
+                src={directImageUrl}
+                alt={currentBanner.title || 'Google Drive Image'}
+                className="w-full h-full object-contain bg-black"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.parentElement!.innerHTML = `<div class="text-red-500 flex items-center justify-center h-full">Image Load Failed. Check Permissions.</div>`;
+                }}
+              />
+            );
+          })()
+        )}
+
+        {currentBanner?.type === 'iframe' && currentBanner?.url && (
+          <iframe
+            src={currentBanner.url}
+            title={currentBanner.title || 'Content'}
+            className="w-full h-full border-none"
+            sandbox="allow-scripts allow-same-origin allow-presentation"
+          />
+        )}
+      </div>
+    </div>
+  );
+};

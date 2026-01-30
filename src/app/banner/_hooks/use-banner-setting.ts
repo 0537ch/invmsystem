@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
+import type { Location } from '@/lib/db';
 
 export type BannerItemType = 'image' | 'youtube' | 'video' | 'iframe' | 'gdrive';
 export type ImageSourceType = 'url' | 'gdrive' | 'upload';
@@ -17,6 +18,8 @@ export interface BannerItem {
   position?: number;
   start_date?: string | Date | null;
   end_date?: string | Date | null;
+  locations?: Location[];
+  location_ids?: number[];
 }
 
 export function useBannerSetting() {
@@ -114,7 +117,8 @@ export function useBannerSetting() {
           description: newItem.description || null,
           image_source: contentCategory === 'image' ? imageSource : null,
           start_date: newItem.start_date || null,
-          end_date: newItem.end_date || null
+          end_date: newItem.end_date || null,
+          location_ids: newItem.location_ids || []
         }),
       });
 
@@ -233,6 +237,7 @@ export function useBannerSetting() {
           position: currentPosition,
           start_date: editingItem.start_date || null,
           end_date: editingItem.end_date || null,
+          location_ids: editingItem.location_ids
         }),
       });
 

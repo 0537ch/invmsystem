@@ -8,11 +8,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Upload } from 'lucide-react';
 import type { BannerItem, ContentCategory, ImageSourceType } from '../_hooks/use-banner-setting';
 import { DatePickerWithRange } from './datepicker';
 import { type DateRange } from 'react-day-picker';
 import { useEffect, useState, useRef } from 'react';
+import type { Location } from '@/lib/db';
 
 interface BannerFormProps {
   mode: 'add' | 'edit';
@@ -43,6 +45,42 @@ export const BannerForm: React.FC<BannerFormProps> = ({
   onCancel,
   fileInputRef,
 }) => {
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [selectedLocationIds, setSelectedLocationIds] = useState<number[]>([]);
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const response = await fetch('/api/locations');
+        const result = await response.json();
+        if (response.ok) {
+          setLocations(result.locations);
+        }
+      } catch (error) {
+        console.error('Error fetching locations:', error);
+      }
+    };
+
+    fetchLocations();
+  }, []);
+
+  useEffect(() => {
+    if (data.locations) {
+      setSelectedLocationIds(data.locations.map((loc: Location) => loc.id));
+    } else {
+      setSelectedLocationIds([]);
+    }
+  }, [data.locations]);
+
+  const handleLocationToggle = (locationId: number) => {
+    const newSelectedIds = selectedLocationIds.includes(locationId)
+      ? selectedLocationIds.filter((id) => id !== locationId)
+      : [...selectedLocationIds, locationId];
+
+    setSelectedLocationIds(newSelectedIds);
+    onDataChange({ ...data, location_ids: newSelectedIds });
+  };
+
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
     const convertToDate = (date: typeof data.start_date): Date | undefined => {
       if (!date) return undefined;
@@ -265,6 +303,32 @@ export const BannerForm: React.FC<BannerFormProps> = ({
         onChange={handleDateChange}
         label="Schedule (optional)"
       />
+
+      {locations.length > 0 && (
+        <div className="space-y-2">
+          <Label>Lokasi Display</Label>
+          <div className="space-y-2">
+            {locations.map((location) => (
+              <div key={location.id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`location-${location.id}`}
+                  checked={selectedLocationIds.includes(location.id)}
+                  onCheckedChange={() => handleLocationToggle(location.id)}
+                />
+                <Label
+                  htmlFor={`location-${location.id}`}
+                  className="font-normal cursor-pointer"
+                >
+                  {location.name}
+                </Label>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Pilih lokasi untuk menampilkan banner ini
+          </p>
+        </div>
+      )}
 
       {/* Dialog Footer */}
       <div className="flex justify-end gap-2 pt-4">
