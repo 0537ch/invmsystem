@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import type { Location, Banner } from '@/lib/db';
 import { AppSidebar } from '@/components/app-sidebar';
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 
 interface LocationWithBanners extends Location {
   banners: Banner[];
@@ -112,7 +112,13 @@ export default function LocationsPage() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <div className="container mx-auto p-6">
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 md:hidden">
+          <SidebarTrigger className="-ml-1" />
+          <div className="flex-1">
+            <h1 className="font-semibold">Locations</h1>
+          </div>
+        </header>
+        <div className="container mx-auto p-4 sm:p-6">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-3xl font-bold">Locations</h1>

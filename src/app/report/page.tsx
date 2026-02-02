@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { AppSidebar } from '@/components/app-sidebar'
 import InvoiceTable from '@/app/report/_components/InvoiceTable'
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 
@@ -30,15 +30,23 @@ export default function InvoicePage() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        {/* 1. Create a dedicated Header bar */}
-        <header className="flex h-13 shrink-0 items-center gap-2 border-b px-2 bg-background sticky top-0 z-10">
+        {/* Mobile Header */}
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 md:hidden bg-background sticky top-0 z-10">
+          <SidebarTrigger className="-ml-1" />
+          <div className="flex-1">
+            <h1 className="font-semibold">Report</h1>
+          </div>
         </header>
 
-        {/* 2. Main Content Area */}
-        <div className="flex flex-1 flex-col gap-4 p-8 pt-6">
+        {/* Desktop Header */}
+        <header className="hidden md:flex h-13 shrink-0 items-center gap-2 border-b px-2 bg-background sticky top-0 z-10">
+        </header>
+
+        {/* Main Content Area */}
+        <div className="flex flex-1 flex-col gap-4 p-4 sm:p-8 pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
                 Report
               </h1>
               <p className="text-muted-foreground mt-1">
