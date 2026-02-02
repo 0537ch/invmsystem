@@ -141,15 +141,15 @@ export default function InvoiceTable() {
 
           <div className="flex flex-col gap-4">
 
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               {/* Left side - Send Notification button */}
               <Dialog open={notificationDialogOpen} onOpenChange={setNotificationDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button disabled={selectedPeople.length === 0}>
+                  <Button disabled={selectedPeople.length === 0} className="w-full sm:w-auto">
                     Kirim {selectedPeople.length > 0 && `(${selectedPeople.length})`}
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto max-w-[95vw] sm:max-w-2xl">
                   <DialogHeader>
                     <DialogTitle>Send Notifications</DialogTitle>
                     <DialogDescription>
@@ -157,7 +157,7 @@ export default function InvoiceTable() {
                     </DialogDescription>
                   </DialogHeader>
 
-                  <div className="mt-4">
+                  <div className="mt-4 overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -193,11 +193,11 @@ export default function InvoiceTable() {
                     </Table>
                   </div>
 
-                  <div className="flex justify-end gap-3 mt-4">
-                    <Button variant="outline" onClick={() => setNotificationDialogOpen(false)}>
+                  <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4">
+                    <Button variant="outline" onClick={() => setNotificationDialogOpen(false)} className="w-full sm:w-auto">
                       Cancel
                     </Button>
-                    <Button onClick={handleSendNotifications} disabled={sending}>
+                    <Button onClick={handleSendNotifications} disabled={sending} className="w-full sm:w-auto">
                       {sending ? 'Sending...' : 'Send Notifications'}
                     </Button>
                   </div>
@@ -205,7 +205,7 @@ export default function InvoiceTable() {
               </Dialog>
 
               {/* Right side buttons */}
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -216,39 +216,39 @@ export default function InvoiceTable() {
                 />
 
                 {!selectedFile ? (
-                  <>
-                    <Button onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <Button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="flex-1 sm:flex-none">
                       Upload File
                     </Button>
-                    <Button variant="outline" onClick={downloadTemplate}>
+                    <Button variant="outline" onClick={downloadTemplate} className="flex-1 sm:flex-none">
                       Template
                     </Button>
-                  </>
+                  </div>
                 ) : (
-                  <>
-                    <div className="text-sm text-muted-foreground max-w-48 truncate hidden sm:block">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
+                    <div className="text-sm text-muted-foreground truncate px-2 py-1 bg-muted rounded flex-1 sm:flex-none sm:max-w-48">
                       {selectedFile.name}
                     </div>
-                    <Button onClick={handleImport} disabled={uploading}>
+                    <Button onClick={handleImport} disabled={uploading} className="flex-1 sm:flex-none">
                       {uploading ? 'Importing...' : 'Import'}
                     </Button>
-                    <Button variant="outline" onClick={() => setSelectedFile(null)} disabled={uploading}>
+                    <Button variant="outline" onClick={() => setSelectedFile(null)} disabled={uploading} className="flex-1 sm:flex-none">
                       Cancel
                     </Button>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
           </div>
 
 
-      <div className='rounded-md border'>
-        <Table className='table-fixed'>
+      <div className='rounded-md border overflow-x-auto'>
+        <Table className='min-w-[600px]'>
           <TableHeader>
             {table.getHeaderGroups().map(headerGroup => (
               <TableRow key={headerGroup.id} className='hover:bg-transparent'>
                 {headerGroup.headers.map(header => (
-                  <TableHead key={header.id} style={{ width: `${header.getSize()}px` }}>
+                  <TableHead key={header.id}>
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}

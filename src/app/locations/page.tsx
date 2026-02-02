@@ -176,67 +176,129 @@ export default function LocationsPage() {
           <p className="text-muted-foreground">Loading locations...</p>
         </div>
       ) : locations.length === 0 ? (
-        <div className="text-center py-20 border-2 border-dashed rounded-lg">
+        <div className="text-center py-20 border-2 border-dashed rounded-lg px-4">
           <p className="text-muted-foreground text-lg mb-2">No locations yet</p>
           <p className="text-muted-foreground text-sm">Click "Add Location" to create one</p>
         </div>
       ) : (
-        <div className="rounded-md border">
-          <table className="w-full caption-bottom text-sm">
-            <thead className="[&_tr]:border-b">
-              <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                <th className="h-10 px-4 text-left align-middle font-medium">Name</th>
-                <th className="h-10 px-4 text-left align-middle font-medium">Slug</th>
-                <th className="h-10 px-4 text-left align-middle font-medium">URL</th>
-                <th className="h-10 px-4 text-left align-middle font-medium">Banners</th>
-                <th className="h-10 px-4 text-left align-middle font-medium w-24">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="[&_tr:last-child]:border-0">
-              {locations.map((location) => (
-                <tr key={location.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                  <td className="p-4 align-middle font-medium">{location.name}</td>
-                  <td className="p-4 align-middle font-mono text-xs text-muted-foreground">{location.slug}</td>
-                  <td className="p-4 align-middle">
-                    <a
-                      href={`/display/${location.slug}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-mono text-xs text-blue-600 hover:underline"
-                    >
-                      /display/{location.slug}
-                    </a>
-                  </td>
-                  <td className="p-4 align-middle">
-                    {location.banners && location.banners.length > 0 ? (
-                      <div className="flex flex-col gap-1">
-                        {location.banners.map((banner) => (
-                          <div key={banner.id} className="text-xs flex items-center gap-2">
-                            <span className="font-medium">{banner.title || banner.type}</span>
-                            <span className="text-muted-foreground">({banner.id})</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">No banners assigned</span>
-                    )}
-                  </td>
-                  <td className="p-4 align-middle">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="size-8"
-                      onClick={() => handleDeleteLocation(location.id)}
-                      title="Delete"
-                    >
-                      <Trash2 className="size-3 text-destructive" />
-                    </Button>
-                  </td>
+        <>
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-3">
+            {locations.map((location) => (
+              <div key={location.id} className="border rounded-lg p-4 space-y-3">
+                {/* Header: Name + Actions */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg">{location.name}</h3>
+                    <p className="font-mono text-xs text-muted-foreground">{location.slug}</p>
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-8 flex-shrink-0"
+                    onClick={() => handleDeleteLocation(location.id)}
+                    title="Delete"
+                  >
+                    <Trash2 className="size-4 text-destructive" />
+                  </Button>
+                </div>
+
+                {/* URL Link */}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Display URL:</p>
+                  <a
+                    href={`/display/${location.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-xs text-blue-600 hover:underline break-all"
+                  >
+                    /display/{location.slug}
+                  </a>
+                </div>
+
+                {/* Banners */}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Banners ({location.banners?.length || 0}):
+                  </p>
+                  {location.banners && location.banners.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {location.banners.map((banner) => (
+                        <div
+                          key={banner.id}
+                          className="text-xs bg-muted px-2 py-1 rounded flex items-center gap-1"
+                        >
+                          <span>{banner.title || banner.type}</span>
+                          <span className="text-muted-foreground">#{banner.id}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">No banners assigned</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block rounded-md border">
+            <table className="w-full caption-bottom text-sm">
+              <thead className="[&_tr]:border-b">
+                <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                  <th className="h-10 px-4 text-left align-middle font-medium">Name</th>
+                  <th className="h-10 px-4 text-left align-middle font-medium">Slug</th>
+                  <th className="h-10 px-4 text-left align-middle font-medium">URL</th>
+                  <th className="h-10 px-4 text-left align-middle font-medium">Banners</th>
+                  <th className="h-10 px-4 text-left align-middle font-medium w-24">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="[&_tr:last-child]:border-0">
+                {locations.map((location) => (
+                  <tr key={location.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                    <td className="p-4 align-middle font-medium">{location.name}</td>
+                    <td className="p-4 align-middle font-mono text-xs text-muted-foreground">{location.slug}</td>
+                    <td className="p-4 align-middle">
+                      <a
+                        href={`/display/${location.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-mono text-xs text-blue-600 hover:underline"
+                      >
+                        /display/{location.slug}
+                      </a>
+                    </td>
+                    <td className="p-4 align-middle">
+                      {location.banners && location.banners.length > 0 ? (
+                        <div className="flex flex-col gap-1">
+                          {location.banners.map((banner) => (
+                            <div key={banner.id} className="text-xs flex items-center gap-2">
+                              <span className="font-medium">{banner.title || banner.type}</span>
+                              <span className="text-muted-foreground">({banner.id})</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">No banners assigned</span>
+                      )}
+                    </td>
+                    <td className="p-4 align-middle">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-8"
+                        onClick={() => handleDeleteLocation(location.id)}
+                        title="Delete"
+                      >
+                        <Trash2 className="size-3 text-destructive" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
       </div>
     </SidebarInset>
