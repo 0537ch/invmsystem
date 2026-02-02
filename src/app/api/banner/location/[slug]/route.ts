@@ -36,8 +36,16 @@ export async function GET(
         return true
       }
 
-      const startDate = (banner.start_date || '').split('T')[0]
-      const endDate = (banner.end_date || '').split('T')[0]
+      const formatDate = (date: string | Date | null): string => {
+        if (!date) return ''
+        if (date instanceof Date) {
+          return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+        }
+        return String(date).split('T')[0]
+      }
+
+      const startDate = formatDate(banner.start_date)
+      const endDate = formatDate(banner.end_date)
 
       const afterStart = !startDate || startDate <= currentDate
       const beforeEnd = !endDate || endDate >= currentDate

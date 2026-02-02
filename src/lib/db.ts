@@ -58,8 +58,8 @@ export type Banner = {
   position: number
   created_at: Date
   updated_at: Date
-  start_date: string | null
-  end_date: string | null
+  start_date: string | Date | null
+  end_date: string | Date | null
   locations?: Location[]
 }
 
