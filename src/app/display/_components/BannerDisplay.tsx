@@ -35,18 +35,18 @@ export const BannerDisplay = () => {
   return (
     <div className="relative w-screen h-screen bg-black overflow-hidden">
       {/* Slide Tracker */}
-      <div className="absolute bottom-4 left-4 z-50 bg-black/70 text-white px-4 py-2 rounded-lg font-mono text-lg backdrop-blur-sm">
+      <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 z-50 bg-black/70 text-white px-2 sm:px-4 py-1 sm:py-2 rounded-lg font-mono text-xs sm:text-lg backdrop-blur-sm">
         {currentIndex + 1}/{banners.length}
       </div>
 
       {currentBanner && (currentBanner.title || currentBanner.description) && currentBanner.type !== 'youtube' && currentBanner.type !== 'video' && (
-        <div className="absolute bottom-4 left-20 z-50 max-w-lg">
-          <div className="bg-linear-to-r from-black/80 via-black/60 to-transparent text-white p-4 rounded-lg backdrop-blur-sm">
+        <div className="absolute bottom-8 left-2 right-2 sm:bottom-4 sm:left-20 sm:right-auto z-50 max-w-lg">
+          <div className="bg-linear-to-r from-black/80 via-black/60 to-transparent text-white p-2 sm:p-4 rounded-lg backdrop-blur-sm">
             {currentBanner.title && (
-              <h2 className="text-xl font-bold mb-1">{currentBanner.title}</h2>
+              <h2 className="text-base sm:text-xl font-bold mb-1">{currentBanner.title}</h2>
             )}
             {currentBanner.description && (
-              <p className="text-sm text-gray-200">{currentBanner.description}</p>
+              <p className="text-xs sm:text-sm text-gray-200 line-clamp-2 sm:line-clamp-none">{currentBanner.description}</p>
             )}
           </div>
         </div>

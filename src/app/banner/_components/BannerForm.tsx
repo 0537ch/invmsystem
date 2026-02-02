@@ -143,12 +143,12 @@ export const BannerForm: React.FC<BannerFormProps> = ({
       </div>
 
       <div className="space-y-2">
-        <Label>Deskripsi (opsional)</Label>
+        <Label className="text-sm sm:text-base">Deskripsi (opsional)</Label>
         <textarea
           placeholder="Deskripsi singkat tentang banner ini..."
           value={data.description || ''}
           onChange={(e) => onDataChange({ ...data, description: e.target.value })}
-          className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:text-base"
         />
       </div>
 
@@ -306,8 +306,8 @@ export const BannerForm: React.FC<BannerFormProps> = ({
 
       {locations.length > 0 && (
         <div className="space-y-2">
-          <Label>Lokasi Display</Label>
-          <div className="space-y-2">
+          <Label className="text-sm sm:text-base">Lokasi Display</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {locations.map((location) => (
               <div key={location.id} className="flex items-center space-x-2">
                 <Checkbox
@@ -317,25 +317,25 @@ export const BannerForm: React.FC<BannerFormProps> = ({
                 />
                 <Label
                   htmlFor={`location-${location.id}`}
-                  className="font-normal cursor-pointer"
+                  className="font-normal cursor-pointer text-sm sm:text-base"
                 >
                   {location.name}
                 </Label>
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground sm:text-sm">
             Pilih lokasi untuk menampilkan banner ini
           </p>
         </div>
       )}
 
       {/* Dialog Footer */}
-      <div className="flex justify-end gap-2 pt-4">
-        <Button variant="outline" onClick={onCancel}>
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+        <Button variant="outline" onClick={onCancel} className="w-full sm:w-auto">
           Batal
         </Button>
-        <Button onClick={onSubmit}>
+        <Button onClick={onSubmit} className="w-full sm:w-auto">
           {mode === 'add' ? 'Tambah Item' : 'Simpan Perubahan'}
         </Button>
       </div>

@@ -160,20 +160,21 @@ const BannerSetting = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 h-full">
-      <div className="flex justify-between items-center mb-6">
+    <div className="container mx-auto p-4 sm:p-6 h-full">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Banner Setting</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Banner Setting</h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="flex-1 sm:flex-none">
                 <Plus className="size-4 mr-2" />
-                Tambah Konten
+                <span className="hidden sm:inline">Tambah Konten</span>
+                <span className="sm:hidden">Tambah</span>
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-h-[90vh] overflow-y-auto max-w-[95vw] sm:max-w-lg">
               <DialogHeader>
                 <DialogTitle>Tambah Konten Banner</DialogTitle>
               <DialogDescription>
@@ -199,7 +200,7 @@ const BannerSetting = () => {
 
         {/* Edit Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-h-[90vh] overflow-y-auto max-w-[95vw] sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Edit Konten Banner</DialogTitle>
               <DialogDescription>
@@ -223,21 +224,22 @@ const BannerSetting = () => {
           </DialogContent>
         </Dialog>
 
-        <Button onClick={handleSyncDisplays} variant="outline">
+        <Button onClick={handleSyncDisplays} variant="outline" className="flex-1 sm:flex-none">
           <RefreshCw className="size-4 mr-2" />
-          Sync Display
+          <span className="hidden sm:inline">Sync Display</span>
+          <span className="sm:hidden">Sync</span>
         </Button>
       </div>
       </div>
 
       {bannerItems.length === 0 ? (
-        <div className="text-center py-20 border-2 border-dashed rounded-lg">
+        <div className="text-center py-20 border-2 border-dashed rounded-lg px-4">
           <p className="text-muted-foreground text-lg mb-2">Belum ada item banner</p>
           <p className="text-muted-foreground text-sm">Klik Tambah Konten untuk memulai</p>
         </div>
       ) : (
-        <div className="rounded-md border">
-          <table className="w-full caption-bottom text-sm">
+        <div className="rounded-md border overflow-x-auto">
+          <table className="w-full caption-bottom text-sm whitespace-nowrap">
             <thead className="[&_tr]:border-b">
               <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                 <th className="h-10 px-2 text-left align-middle font-medium w-20">Posisi ↕</th>
