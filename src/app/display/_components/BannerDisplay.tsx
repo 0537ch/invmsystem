@@ -1,6 +1,5 @@
 "use client";
 
-import React from 'react';
 import { useBannerDisplay } from '../_hooks/use-banner-display';
 import { YouTubePlayer } from './YouTubePlayer';
 
@@ -42,7 +41,7 @@ export const BannerDisplay = () => {
 
       {currentBanner && (currentBanner.title || currentBanner.description) && currentBanner.type !== 'youtube' && currentBanner.type !== 'video' && (
         <div className="absolute bottom-4 left-20 z-50 max-w-lg">
-          <div className="bg-gradient-to-r from-black/80 via-black/60 to-transparent text-white p-4 rounded-lg backdrop-blur-sm">
+          <div className="bg-linear-to-r from-black/80 via-black/60 to-transparent text-white p-4 rounded-lg backdrop-blur-sm">
             {currentBanner.title && (
               <h2 className="text-xl font-bold mb-1">{currentBanner.title}</h2>
             )}
