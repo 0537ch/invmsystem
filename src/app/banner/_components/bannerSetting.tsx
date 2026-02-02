@@ -382,7 +382,7 @@ const BannerSetting = () => {
             <table className="w-full caption-bottom text-sm whitespace-nowrap">
               <thead className="[&_tr]:border-b">
                 <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                  <th className="h-10 px-2 text-left align-middle font-medium w-16">Posisi ↕</th>
+                  <th className="h-10 px-2 text-left align-middle font-medium w-16">Posisi</th>
                   <th className="h-10 px-2 text-left align-middle font-medium w-20">Preview</th>
                   <th className="h-10 px-2 text-left align-middle font-medium w-20">Judul</th>
                   <th className="h-10 px-2 text-left align-middle font-medium w-16">Durasi</th>

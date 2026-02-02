@@ -31,7 +31,7 @@ interface BannerFormProps {
   fileInputRef?: React.RefObject<HTMLInputElement | null>;
 }
 
-export const BannerForm: React.FC<BannerFormProps> = ({
+export function BannerForm({
   mode,
   data,
   category,
@@ -44,7 +44,7 @@ export const BannerForm: React.FC<BannerFormProps> = ({
   onSubmit,
   onCancel,
   fileInputRef,
-}) => {
+}: BannerFormProps) {
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocationIds, setSelectedLocationIds] = useState<number[]>([]);
 
