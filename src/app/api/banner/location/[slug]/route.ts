@@ -36,13 +36,8 @@ export async function GET(
         return true
       }
 
-      const startDate = banner.start_date instanceof Date
-        ? `${banner.start_date.getFullYear()}-${String(banner.start_date.getMonth() + 1).padStart(2, '0')}-${String(banner.start_date.getDate()).padStart(2, '0')}`
-        : (banner.start_date || '').split('T')[0]
-
-      const endDate = banner.end_date instanceof Date
-        ? `${banner.end_date.getFullYear()}-${String(banner.end_date.getMonth() + 1).padStart(2, '0')}-${String(banner.end_date.getDate()).padStart(2, '0')}`
-        : (banner.end_date || '').split('T')[0]
+      const startDate = (banner.start_date || '').split('T')[0]
+      const endDate = (banner.end_date || '').split('T')[0]
 
       const afterStart = !startDate || startDate <= currentDate
       const beforeEnd = !endDate || endDate >= currentDate

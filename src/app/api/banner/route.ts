@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     `
 
     if (location_ids.length > 0) {
-      const values = location_ids.map(locId => [banner.id, locId])
+      const values = location_ids.map((locId: number) => [banner.id, locId])
       await sql`INSERT INTO banner_locations (banner_id, location_id) VALUES ${sql(values)}`
     }
 
