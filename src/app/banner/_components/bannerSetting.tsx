@@ -61,6 +61,8 @@ const BannerSetting = () => {
         return <HardDrive className="size-4" />;
       case 'iframe':
         return <Globe className="size-4" />;
+      // case 'pdf':
+      //   return <FileText className="size-4" />;
     }
   };
 
@@ -167,6 +169,20 @@ const BannerSetting = () => {
           </div>
         );
       }
+      /*
+      case 'pdf': {
+        return (
+          <div className={previewClass}>
+            <div className="text-center">
+              <FileText className="size-12 text-red-500 mx-auto mb-2" />
+              <div className="text-sm font-medium">PDF Document</div>
+              <div className="text-xs text-muted-foreground mt-1 truncate px-4">{item.url}</div>
+            </div>
+            <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">PDF</div>
+          </div>
+        );
+      }
+      */
     }
   };
 
@@ -269,7 +285,7 @@ const BannerSetting = () => {
                   <div className="flex-1 min-w-0">
                     <span className="font-medium truncate block">{item.title || item.type}</span>
                   </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
+                  <div className="flex items-center gap-1 shrink-0">
                     <Button
                       size="icon"
                       variant="ghost"

@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import type { Location } from '@/lib/db';
 
-export type BannerItemType = 'image' | 'youtube' | 'video' | 'iframe' | 'gdrive';
+export type BannerItemType = 'image' | 'youtube' | 'video' | 'iframe' | 'gdrive' | 'pdf';
 export type ImageSourceType = 'url' | 'gdrive' | 'upload';
-export type ContentCategory = 'image' | 'youtube' | 'video' | 'html';
+export type ContentCategory = 'image' | 'youtube' | 'video' | 'html' | 'pdf';
 
 export interface BannerItem {
   id: number;

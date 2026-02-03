@@ -69,3 +69,11 @@ export type Location = {
   slug: string
   created_at: Date
 }
+
+export type User = {
+  id: number
+  username: string
+  name: string | null
+  active: boolean
+  created_at: Date
+}

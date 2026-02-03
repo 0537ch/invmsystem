@@ -154,7 +154,7 @@ export function BannerForm({
 
       {/* Main Category Selection */}
       <div className="space-y-2">
-        <Label>Tipe Konten</Label>
+        <Label className="text-sm sm:text-base">Tipe Konten</Label>
         <Select
           value={category}
           onValueChange={onCategoryChange}
@@ -167,6 +167,7 @@ export function BannerForm({
             <SelectItem value="youtube">YouTube</SelectItem>
             <SelectItem value="video">Video File (MP4, WebM)</SelectItem>
             <SelectItem value="html">HTML / Website</SelectItem>
+            {/* <SelectItem value="pdf">PDF</SelectItem> */}
           </SelectContent>
         </Select>
       </div>
@@ -249,6 +250,7 @@ export function BannerForm({
             <Label>
               {category === 'youtube' ? 'URL YouTube' :
                category === 'video' ? 'URL Video File' :
+               category === 'pdf' ? 'URL PDF (Google Drive atau URL langsung)' :
                imageSource === 'gdrive' ? 'URL Google Drive' :
                imageSource === 'upload' ? 'File (Segera Hadir)' : 'URL Gambar'}
             </Label>
@@ -262,6 +264,7 @@ export function BannerForm({
                 placeholder={
                   category === 'youtube' ? 'https://youtube.com/watch?v=...' :
                   category === 'video' ? 'https://example.com/video.mp4' :
+                  category === 'pdf' ? 'https://drive.google.com/file/d/.../view atau https://example.com/file.pdf' :
                   imageSource === 'gdrive' ? 'https://drive.google.com/file/d/.../view' :
                   'https://example.com/image.jpg'
                 }
@@ -273,6 +276,7 @@ export function BannerForm({
             <p className="text-xs text-muted-foreground">
               {category === 'youtube' ? 'Tempel URL video YouTube' :
                category === 'video' ? 'Tempel URL file video (MP4, WebM, dll)' :
+               category === 'pdf' ? 'Masukkan URL PDF dari Google Drive atau URL langsung. PDF akan ditampilkan dengan Google Docs Viewer.' :
                imageSource === 'gdrive' ? 'Tempel tautan berbagi Google Drive' :
                imageSource === 'upload' ? 'Fitur upload file segera hadir' :
                'Tempel URL gambar langsung'}
@@ -281,7 +285,7 @@ export function BannerForm({
         )}
       </div>
 
-      {/* Duration for images and html only */}
+      {/* Duration for images, html, and pdf only */}
       {category !== 'youtube' && category !== 'video' && (
         <div className="space-y-2">
           <Label>Durasi (detik)</Label>

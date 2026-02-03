@@ -26,6 +26,8 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
         return <span className="size-4">💾</span>;
       case 'iframe':
         return <span className="size-4">🌐</span>;
+      case 'pdf':
+        return <span className="size-4">📄</span>;
     }
   };
 
@@ -128,6 +130,35 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
           </div>
         );
       }
+      /*
+      case 'pdf': {
+        // Check if it's a Google Drive URL and convert it to preview format
+        const fileIdMatch = item.url.match(/\/d\/([^/]+)/);
+        const idMatch = item.url.match(/id=([^/&]+)/);
+        const fileId = fileIdMatch?.[1] || idMatch?.[1];
+
+        let pdfUrl: string;
+        if (fileId) {
+          // Google Drive PDF - use preview URL
+          pdfUrl = `https://drive.google.com/file/d/${fileId}/preview?embedded=true`;
+        } else {
+          // Direct PDF URL - use as is
+          pdfUrl = item.url;
+        }
+
+        return (
+          <div className={previewClass + " p-0 bg-background"}>
+            <iframe
+              src={pdfUrl}
+              title="PDF preview"
+              className="w-full h-full border-0"
+              sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"
+            />
+            <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded z-10">PDF</div>
+          </div>
+        );
+      }
+      */
     }
   };
 
@@ -135,7 +166,7 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto max-w-[95vw]">
+      <DialogContent className="max-h-[90vh] overflow-y-auto max-w-[95vw]">
         <DialogHeader>
           <DialogTitle>Banner Details</DialogTitle>
           <DialogDescription>Complete information about this banner</DialogDescription>

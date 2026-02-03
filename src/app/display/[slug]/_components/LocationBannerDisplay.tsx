@@ -133,6 +133,35 @@ export const BannerDisplay = ({
             sandbox="allow-scripts allow-same-origin allow-presentation"
           />
         )}
+
+        {/*
+        {currentBanner?.type === 'pdf' && currentBanner?.url && (
+          (() => {
+            // Check if it's a Google Drive URL and convert it to preview format
+            const fileIdMatch = currentBanner.url.match(/\/d\/([^/]+)/);
+            const idMatch = currentBanner.url.match(/id=([^/&]+)/);
+            const fileId = fileIdMatch?.[1] || idMatch?.[1];
+
+            let pdfUrl: string;
+            if (fileId) {
+              // Google Drive PDF - use preview URL
+              pdfUrl = `https://drive.google.com/file/d/${fileId}/preview?embedded=true`;
+            } else {
+              // Direct PDF URL - use as is
+              pdfUrl = currentBanner.url;
+            }
+
+            return (
+              <iframe
+                src={pdfUrl}
+                title={currentBanner.title || 'PDF'}
+                className="w-full h-full border-0"
+                sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"
+              />
+            );
+          })()
+        )}
+        */}
       </div>
     </div>
   );
