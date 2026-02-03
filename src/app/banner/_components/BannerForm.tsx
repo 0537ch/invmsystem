@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Upload } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 import type { BannerItem, ContentCategory, ImageSourceType } from '../_hooks/use-banner-setting';
 import { DatePickerWithRange } from './datepicker';
 import { type DateRange } from 'react-day-picker';
@@ -22,6 +23,7 @@ interface BannerFormProps {
   category: ContentCategory;
   imageSource: ImageSourceType;
   htmlFile: File | null;
+  isLoading?: boolean;
   onDataChange: (data: Partial<BannerItem>) => void;
   onCategoryChange: (category: ContentCategory) => void;
   onImageSourceChange: (source: ImageSourceType) => void;
@@ -37,6 +39,7 @@ export function BannerForm({
   category,
   imageSource,
   htmlFile,
+  isLoading,
   onDataChange,
   onCategoryChange,
   onImageSourceChange,
@@ -339,8 +342,15 @@ export function BannerForm({
         <Button variant="outline" onClick={onCancel} className="w-full sm:w-auto">
           Batal
         </Button>
-        <Button onClick={onSubmit} className="w-full sm:w-auto">
-          {mode === 'add' ? 'Tambah Item' : 'Simpan Perubahan'}
+        <Button onClick={onSubmit} disabled={isLoading} className="w-full sm:w-auto">
+          {isLoading ? (
+            <>
+              <Spinner className="mr-2 h-4 w-4" />
+              {mode === 'add' ? 'Menambahkan...' : 'Menyimpan...'}
+            </>
+          ) : (
+            mode === 'add' ? 'Tambah Item' : 'Simpan Perubahan'
+          )}
         </Button>
       </div>
     </div>

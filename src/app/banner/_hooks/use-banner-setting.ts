@@ -25,6 +25,12 @@ export interface BannerItem {
 export function useBannerSetting() {
   const [bannerItems, setBannerItems] = useState<BannerItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAdding, setIsAdding] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<number | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isToggling, setIsToggling] = useState<number | null>(null);
+  const [isUpdatingPosition, setIsUpdatingPosition] = useState<number | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [contentCategory, setContentCategory] = useState<ContentCategory>('image');
   const [imageSource, setImageSource] = useState<ImageSourceType>('url');
@@ -105,6 +111,7 @@ export function useBannerSetting() {
       }
     }
 
+    setIsAdding(true);
     try {
       const response = await fetch('/api/banner', {
         method: 'POST',
@@ -136,10 +143,13 @@ export function useBannerSetting() {
     } catch (error) {
       console.error('Error creating banner:', error);
       alert('Failed to create banner');
+    } finally {
+      setIsAdding(false);
     }
   };
 
   const handleDeleteItem = async (id: number) => {
+    setIsDeleting(id);
     try {
       const response = await fetch(`/api/banner/${id}`, {
         method: 'DELETE',
@@ -155,6 +165,8 @@ export function useBannerSetting() {
     } catch (error) {
       console.error('Error deleting banner:', error);
       alert('Failed to delete banner');
+    } finally {
+      setIsDeleting(null);
     }
   };
 
@@ -223,6 +235,7 @@ export function useBannerSetting() {
     const item = bannerItems[editingIndex!];
     const currentPosition = editingIndex!;
 
+    setIsSaving(true);
     try {
       const response = await fetch(`/api/banner/${item.id}`, {
         method: 'PUT',
@@ -253,6 +266,8 @@ export function useBannerSetting() {
     } catch (error) {
       console.error('Error updating banner:', error);
       alert('Failed to update banner');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -267,6 +282,7 @@ export function useBannerSetting() {
 
     if (currentIndex === targetPosition) return;
 
+    setIsUpdatingPosition(item.id);
     try {
       const response = await fetch(`/api/banner/${item.id}`, {
         method: 'PUT',
@@ -285,10 +301,13 @@ export function useBannerSetting() {
     } catch (error) {
       console.error('Error updating position:', error);
       alert('Failed to update position');
+    } finally {
+      setIsUpdatingPosition(null);
     }
   };
 
   const handleToggleActive = async (item: BannerItem) => {
+    setIsToggling(item.id);
     try {
       const response = await fetch(`/api/banner/${item.id}`, {
         method: 'PUT',
@@ -307,10 +326,13 @@ export function useBannerSetting() {
     } catch (error) {
       console.error('Error toggling active status:', error);
       alert('Failed to update active status');
+    } finally {
+      setIsToggling(null);
     }
   };
 
   const handleSyncDisplays = async () => {
+    setIsSyncing(true);
     try {
       const response = await fetch('/api/banner/sync', {
         method: 'POST',
@@ -334,12 +356,20 @@ export function useBannerSetting() {
     } catch (error) {
       console.error('Error syncing displays:', error);
       toast.error('Failed to sync displays');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
   return {
     bannerItems,
     loading,
+    isAdding,
+    isSaving,
+    isDeleting,
+    isSyncing,
+    isToggling,
+    isUpdatingPosition,
     isAddDialogOpen,
     setIsAddDialogOpen,
     contentCategory,

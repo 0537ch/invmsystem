@@ -1,6 +1,7 @@
 "use client";
 
 import { Youtube, Globe, Image as ImageIcon, HardDrive, Trash2, Pencil, Plus, Video, RefreshCw, Eye } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -18,6 +19,12 @@ const BannerSetting = () => {
   const {
     bannerItems,
     loading,
+    isAdding,
+    isSaving,
+    isDeleting,
+    isSyncing,
+    isToggling,
+    isUpdatingPosition,
     isAddDialogOpen,
     setIsAddDialogOpen,
     contentCategory,
@@ -224,6 +231,7 @@ const BannerSetting = () => {
               category={contentCategory}
               imageSource={imageSource}
               htmlFile={htmlFile}
+              isLoading={isAdding}
               onDataChange={setNewItem}
               onCategoryChange={setContentCategory}
               onImageSourceChange={setImageSource}
@@ -250,6 +258,7 @@ const BannerSetting = () => {
               category={editContentCategory}
               imageSource={editImageSource}
               htmlFile={editHtmlFile}
+              isLoading={isSaving}
               onDataChange={setEditingItem}
               onCategoryChange={setEditContentCategory}
               onImageSourceChange={setEditImageSource}
@@ -261,8 +270,12 @@ const BannerSetting = () => {
           </DialogContent>
         </Dialog>
 
-        <Button onClick={handleSyncDisplays} variant="outline" className="flex-1 sm:flex-none">
-          <RefreshCw className="size-4 mr-2" />
+        <Button onClick={handleSyncDisplays} disabled={isSyncing} variant="outline" className="flex-1 sm:flex-none">
+          {isSyncing ? (
+            <Spinner className="mr-2" />
+          ) : (
+            <RefreshCw className="size-4 mr-2" />
+          )}
           <span className="hidden sm:inline">Sync Display</span>
           <span className="sm:hidden">Sync</span>
         </Button>
@@ -309,9 +322,14 @@ const BannerSetting = () => {
                       variant="ghost"
                       className="size-8"
                       onClick={() => handleDeleteItem(item.id)}
+                      disabled={isDeleting === item.id}
                       title="Delete"
                     >
-                      <Trash2 className="size-3 text-destructive" />
+                      {isDeleting === item.id ? (
+                        <Spinner className="size-3 text-destructive" />
+                      ) : (
+                        <Trash2 className="size-3 text-destructive" />
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -334,31 +352,39 @@ const BannerSetting = () => {
                   <div className="flex items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">Pos:</span>
-                      <Input
-                        key={`${item.id}-${index}`}
-                        type="number"
-                        min={1}
-                        max={bannerItems.length}
-                        defaultValue={index + 1}
-                        className="w-14 h-7 text-center text-xs"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            const input = e.target as HTMLInputElement;
-                            const newPosition = parseInt(input.value);
-                            if (!isNaN(newPosition)) {
-                              handlePositionChange(item, newPosition);
+                      <div className="relative">
+                        <Input
+                          key={`${item.id}-${index}`}
+                          type="number"
+                          min={1}
+                          max={bannerItems.length}
+                          defaultValue={index + 1}
+                          className="w-14 h-7 text-center text-xs"
+                          disabled={isUpdatingPosition === item.id}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const input = e.target as HTMLInputElement;
+                              const newPosition = parseInt(input.value);
+                              if (!isNaN(newPosition)) {
+                                handlePositionChange(item, newPosition);
+                              }
                             }
-                          }
-                        }}
-                        onBlur={(e) => {
-                          const newPosition = parseInt(e.target.value);
-                          if (!isNaN(newPosition) && newPosition !== index + 1) {
-                            handlePositionChange(item, newPosition);
-                          } else {
-                            e.target.value = String(index + 1);
-                          }
-                        }}
-                      />
+                          }}
+                          onBlur={(e) => {
+                            const newPosition = parseInt(e.target.value);
+                            if (!isNaN(newPosition) && newPosition !== index + 1) {
+                              handlePositionChange(item, newPosition);
+                            } else {
+                              e.target.value = String(index + 1);
+                            }
+                          }}
+                        />
+                        {isUpdatingPosition === item.id && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-background/50">
+                            <Spinner className="size-3" />
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {item.type !== 'youtube' && item.type !== 'video' && (
@@ -373,6 +399,7 @@ const BannerSetting = () => {
                       <Switch
                         checked={item.active !== false}
                         onCheckedChange={() => handleToggleActive(item)}
+                        disabled={isToggling === item.id}
                       />
                     </div>
                   </div>
@@ -412,31 +439,39 @@ const BannerSetting = () => {
                   <tr key={item.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                     {/* Position */}
                     <td className="p-2 align-middle">
-                      <Input
-                        key={`${item.id}-${index}`}
-                        type="number"
-                        min={1}
-                        max={bannerItems.length}
-                        defaultValue={index + 1}
-                        className="w-16 h-8 text-center"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            const input = e.target as HTMLInputElement;
-                            const newPosition = parseInt(input.value);
-                            if (!isNaN(newPosition)) {
-                              handlePositionChange(item, newPosition);
+                      <div className="relative">
+                        <Input
+                          key={`${item.id}-${index}`}
+                          type="number"
+                          min={1}
+                          max={bannerItems.length}
+                          defaultValue={index + 1}
+                          className="w-16 h-8 text-center"
+                          disabled={isUpdatingPosition === item.id}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const input = e.target as HTMLInputElement;
+                              const newPosition = parseInt(input.value);
+                              if (!isNaN(newPosition)) {
+                                handlePositionChange(item, newPosition);
+                              }
                             }
-                          }
-                        }}
-                        onBlur={(e) => {
-                          const newPosition = parseInt(e.target.value);
-                          if (!isNaN(newPosition) && newPosition !== index + 1) {
-                            handlePositionChange(item, newPosition);
-                          } else {
-                            e.target.value = String(index + 1);
-                          }
-                        }}
-                      />
+                          }}
+                          onBlur={(e) => {
+                            const newPosition = parseInt(e.target.value);
+                            if (!isNaN(newPosition) && newPosition !== index + 1) {
+                              handlePositionChange(item, newPosition);
+                            } else {
+                              e.target.value = String(index + 1);
+                            }
+                          }}
+                        />
+                        {isUpdatingPosition === item.id && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-background/50">
+                            <Spinner className="size-3" />
+                          </div>
+                        )}
+                      </div>
                     </td>
 
                     {/* Preview */}
@@ -486,6 +521,7 @@ const BannerSetting = () => {
                       <Switch
                         checked={item.active !== false}
                         onCheckedChange={() => handleToggleActive(item)}
+                        disabled={isToggling === item.id}
                       />
                     </td>
 
@@ -515,9 +551,14 @@ const BannerSetting = () => {
                           variant="ghost"
                           className="size-8"
                           onClick={() => handleDeleteItem(item.id)}
+                          disabled={isDeleting === item.id}
                           title="Delete"
                         >
-                          <Trash2 className="size-3 text-destructive" />
+                          {isDeleting === item.id ? (
+                            <Spinner className="size-3 text-destructive" />
+                          ) : (
+                            <Trash2 className="size-3 text-destructive" />
+                          )}
                         </Button>
                       </div>
                     </td>
