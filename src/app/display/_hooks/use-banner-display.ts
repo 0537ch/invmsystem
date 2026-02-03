@@ -57,6 +57,9 @@ export function useBannerDisplay() {
   const eventSourceRef = useRef<EventSource | null>(null);
   const fetchBannersRef = useRef<(() => Promise<void>) | null>(null);
   const isFetchingRef = useRef(false);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const MAX_RECONNECT_DELAY = 30000; // 30 seconds max delay
 
   const fetchBanners = useCallback(async () => {
     if (isFetchingRef.current) {
@@ -91,13 +94,17 @@ export function useBannerDisplay() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchBannersRef.current = fetchBanners;
-  }, [fetchBanners]);
+  const connectToSSE = useCallback(() => {
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+    }
 
-  useEffect(() => {
     const eventSource = new EventSource('/api/banner/events');
     eventSourceRef.current = eventSource;
+
+    eventSource.onopen = () => {
+      reconnectAttemptsRef.current = 0;
+    };
 
     eventSource.onmessage = (event) => {
       try {
@@ -110,14 +117,34 @@ export function useBannerDisplay() {
       }
     };
 
-    eventSource.onerror = (error) => {
-      console.error('SSE connection error:', error);
-    };
-
-    return () => {
+    eventSource.onerror = () => {
       eventSource.close();
+
+      const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), MAX_RECONNECT_DELAY);
+      reconnectAttemptsRef.current++;
+
+      reconnectTimeoutRef.current = setTimeout(() => {
+        connectToSSE();
+      }, delay);
     };
   }, []);
+
+  useEffect(() => {
+    fetchBannersRef.current = fetchBanners;
+  }, [fetchBanners]);
+
+  useEffect(() => {
+    connectToSSE();
+
+    return () => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+    };
+  }, [connectToSSE]);
 
   useEffect(() => {
     fetchBanners();
