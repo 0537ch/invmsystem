@@ -83,6 +83,20 @@ const BannerSetting = () => {
     return parsed.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
+  const getStatusInfo = (status: string | undefined) => {
+    switch (status) {
+      case 'live':
+        return { label: 'Live', variant: 'default' as const, className: 'bg-green-500 text-white border-transparent' };
+      case 'scheduled':
+        return { label: 'Scheduled', variant: 'secondary' as const, className: 'bg-yellow-500 text-white border-transparent' };
+      case 'expired':
+        return { label: 'Expired', variant: 'destructive' as const, className: 'bg-red-500 text-white border-transparent' };
+      case 'inactive':
+      default:
+        return { label: 'Inactive', variant: 'outline' as const, className: 'bg-gray-400 text-white border-transparent' };
+    }
+  };
+
   const handleViewDetails = (item: BannerItem) => {
     setSelectedItem(item);
     setDetailDialogOpen(true);
@@ -296,7 +310,10 @@ const BannerSetting = () => {
                 {/* Header: Title + Actions */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <span className="font-medium truncate block">{item.title || item.type}</span>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge className={getStatusInfo(item.status).className}>{getStatusInfo(item.status).label}</Badge>
+                      <span className="font-medium truncate">{item.title || item.type}</span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <Button
@@ -496,6 +513,7 @@ const BannerSetting = () => {
                     {/* Title */}
                     <td className="p-2 align-middle">
                       <div className="flex items-center gap-2">
+                        <Badge className={getStatusInfo(item.status).className}>{getStatusInfo(item.status).label}</Badge>
                         <span className="font-medium">{item.title || item.type}</span>
                       </div>
                     </td>

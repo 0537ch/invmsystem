@@ -20,6 +20,7 @@ export interface BannerItem {
   end_date?: string | Date | null;
   locations?: Location[];
   location_ids?: number[];
+  status?: 'live' | 'scheduled' | 'expired' | 'inactive';
 }
 
 export function useBannerSetting() {

@@ -46,6 +46,8 @@ export type PersonWithInvoices = Person & {
   total: number
 }
 
+export type BannerStatus = 'live' | 'scheduled' | 'expired' | 'inactive'
+
 export type Banner = {
   id: number
   type: 'image' | 'youtube' | 'video' | 'iframe' | 'gdrive'
@@ -61,6 +63,7 @@ export type Banner = {
   start_date: string | Date | null
   end_date: string | Date | null
   locations?: Location[]
+  status?: BannerStatus
 }
 
 export type Location = {
@@ -76,4 +79,45 @@ export type User = {
   name: string | null
   active: boolean
   created_at: Date
+}
+
+export function getBannerStatus(
+  active: boolean,
+  startDate: string | Date | null,
+  endDate: string | Date | null
+): BannerStatus {
+  if (!active) {
+    return 'inactive'
+  }
+
+  const today = new Date()
+  const currentDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+
+  const formatDate = (date: string | Date | null): string | null => {
+    if (!date) return null
+    if (date instanceof Date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    }
+    return String(date).split('T')[0]
+  }
+
+  const startDateStr = formatDate(startDate)
+  const endDateStr = formatDate(endDate)
+
+  const afterStart = !startDateStr || startDateStr <= currentDate
+  const beforeEnd = !endDateStr || endDateStr >= currentDate
+
+  if (afterStart && beforeEnd) {
+    return 'live'
+  }
+
+  if (startDateStr && startDateStr > currentDate) {
+    return 'scheduled'
+  }
+
+  if (endDateStr && endDateStr < currentDate) {
+    return 'expired'
+  }
+
+  return 'inactive'
 }

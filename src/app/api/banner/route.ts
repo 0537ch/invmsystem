@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getDb } from '@/lib/db'
+import { getDb, getBannerStatus } from '@/lib/db'
 import type { Banner, Location } from '@/lib/db'
 
 export async function GET() {
@@ -23,6 +23,7 @@ export async function GET() {
         return {
           ...banner,
           locations,
+          status: getBannerStatus(banner.active, banner.start_date, banner.end_date),
         }
       })
     )
@@ -100,7 +101,16 @@ export async function POST(request: Request) {
       ORDER BY l.name ASC
     `
 
-    return NextResponse.json({ banner: { ...banner, locations } }, { status: 201 })
+    return NextResponse.json(
+      {
+        banner: {
+          ...banner,
+          locations,
+          status: getBannerStatus(banner.active, banner.start_date, banner.end_date),
+        },
+      },
+      { status: 201 }
+    )
   } catch (error) {
     console.error('Error creating banner:', error)
     return NextResponse.json(
