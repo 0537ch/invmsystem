@@ -13,10 +13,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  if (pathname.startsWith('/api') && !pathname.startsWith('/api/auth')) {
-    return NextResponse.next()
-  }
-
   const token = request.cookies.get('auth-token')?.value
 
   if (!token) {
