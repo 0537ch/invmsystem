@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react"
 import { toast } from "sonner"
-
 export type Invoice = {
   id: number
   invoice_num: string
