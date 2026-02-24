@@ -16,38 +16,35 @@ export async function POST(request: Request) {
       )
     }
 
-    let rows: Array<{
-      name: string
-      email: string
-      invoice_num: string
-      price: number
-    }> = []
-
     const fileName = file.name.toLowerCase()
+    let parsedData: Record<string, any>[] = []
 
     if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
       const buffer = await file.arrayBuffer()
       const workbook = XLSX.read(buffer)
       const sheetName = workbook.SheetNames[0]
       const sheet = workbook.Sheets[sheetName]
-      const data = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as (string | number | null | undefined)[][]
+      const data = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false }) as (string | number | null | undefined)[][]
 
-      const startIndex = data.length > 0 && String(data[0][0]).toLowerCase() === 'name' ? 1 : 0
+      if (data.length > 0) {
+        const headers = data[0].map(h => String(h).trim())
+        const dataRows = data.slice(1)
 
-      for (let i = startIndex; i < data.length; i++) {
-        const row = data[i]
-        if (row.length >= 4) {
-          rows.push({
-            name: String(row[0] ?? '').trim(),
-            email: String(row[1] ?? '').trim(),
-            invoice_num: String(row[2] ?? '').trim(),
-            price: parseFloat(`${row[3] ?? 0}`) || 0
+        for (const row of dataRows) {
+          const rowObj: Record<string, any> = {}
+          headers.forEach((header, index) => {
+            if (row[index] !== null && row[index] !== undefined) {
+              rowObj[header] = row[index]
+            }
           })
+          if (Object.keys(rowObj).length > 0) {
+            parsedData.push(rowObj)
+          }
         }
       }
     } else if (fileName.endsWith('.csv')) {
       const text = await file.text()
-      rows = parseCSV(text)
+      parsedData = parseCSV(text)
     } else {
       return NextResponse.json(
         { error: 'Unsupported file format. Please use CSV or XLSX.' },
@@ -55,57 +52,39 @@ export async function POST(request: Request) {
       )
     }
 
-    if (rows.length === 0) {
+    if (parsedData.length === 0) {
       return NextResponse.json(
         { error: 'File is empty or has no valid data' },
         { status: 400 }
       )
     }
 
-    await sql`DELETE FROM invoices`
-    await sql`DELETE FROM persons`
-
-    const peopleMap = new Map<string, {
-      name: string
-      email: string
-      invoices: Array<{ invoice_num: string; price: number }>
-    }>()
-
-    rows.forEach((row) => {
-      const key = `${row.name}|${row.email}`
-
-      if (!peopleMap.has(key)) {
-        peopleMap.set(key, {
-          name: row.name,
-          email: row.email,
-          invoices: []
-        })
+    const cleanedData = parsedData.map(row => {
+      const cleanedRow: Record<string, any> = {}
+      for (const [key, value] of Object.entries(row)) {
+        cleanedRow[key] = convertScientificNotation(value)
       }
-
-      peopleMap.get(key)!.invoices.push({
-        invoice_num: row.invoice_num,
-        price: row.price
-      })
+      return cleanedRow
     })
 
-    for (const personData of peopleMap.values()) {
-      const [person] = await sql<{ id: number }[]>`
-        INSERT INTO persons (name, email)
-        VALUES (${personData.name}, ${personData.email})
-        RETURNING id
-      `
+    await sql`UPDATE imports SET is_active = false`
 
-      for (const invoice of personData.invoices) {
-        await sql`
-          INSERT INTO invoices (invoice_num, price, person_id)
-          VALUES (${invoice.invoice_num}, ${invoice.price}, ${person.id})
-        `
-      }
+    const [importRecord] = await sql<{ id: number }[]>`
+      INSERT INTO imports (file_name, is_active)
+      VALUES (${file.name}, true)
+      RETURNING id
+    `
+
+    for (const rowData of cleanedData) {
+      await sql`
+        INSERT INTO rows (import_id, data)
+        VALUES (${importRecord.id}, ${sql.json(rowData)})
+      `
     }
 
     return NextResponse.json({
       success: true,
-      message: `Successfully imported ${rows.length} invoices from ${file.name}`
+      message: `Successfully imported ${parsedData.length} rows from ${file.name}`
     })
   } catch (error) {
     console.error('Error importing file:', error)
@@ -116,36 +95,23 @@ export async function POST(request: Request) {
   }
 }
 
-function parseCSV(text: string): Array<{
-  name: string
-  email: string
-  invoice_num: string
-  price: number
-}> {
+function parseCSV(text: string): Record<string, any>[] {
   const lines = text.trim().split('\n')
+  if (lines.length === 0) return []
 
-  const startIndex = lines[0].toLowerCase().includes('name') ? 1 : 0
+  const headers = parseCSVLine(lines[0])
+  const dataLines = lines.slice(1)
 
-  const rows: Array<{
-    name: string
-    email: string
-    invoice_num: string
-    price: number
-  }> = []
+  const rows: Record<string, any>[] = []
 
-  for (let i = startIndex; i < lines.length; i++) {
-    const line = lines[i].trim()
-    if (!line) continue
-
+  for (const line of dataLines) {
     const values = parseCSVLine(line)
-
-    if (values.length >= 4) {
-      rows.push({
-        name: values[0].trim(),
-        email: values[1].trim(),
-        invoice_num: values[2].trim(),
-        price: parseFloat(values[3].trim()) || 0
+    if (values.length === headers.length) {
+      const rowObj: Record<string, any> = {}
+      headers.forEach((header, index) => {
+        rowObj[header] = values[index]?.trim() || ''
       })
+      rows.push(rowObj)
     }
   }
 
@@ -172,4 +138,29 @@ function parseCSVLine(line: string): string[] {
 
   values.push(current)
   return values
+}
+
+function convertScientificNotation(value: any): any {
+  if (value === null || value === undefined) {
+    return value
+  }
+
+  if (typeof value === 'number') {
+    return String(value)
+  }
+
+  if (typeof value === 'string') {
+    const lowerValue = value.toLowerCase().trim()
+
+    if (/e\+?\d+$/i.test(lowerValue)) {
+      const num = parseFloat(lowerValue)
+      if (!isNaN(num)) {
+        return String(num)
+      }
+    }
+
+    return value
+  }
+
+  return value
 }

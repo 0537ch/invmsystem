@@ -1,47 +1,57 @@
 import { useState, useRef, useEffect, useMemo } from "react"
 import { toast } from "sonner"
-export type Invoice = {
+
+export type Import = {
   id: number
-  invoice_num: string
-  price: number | string
+  file_name: string
+  uploaded_at: Date
 }
 
-export type Person = {
+export type Row = {
   id: number
-  name: string
-  email: string
-  invoices: Invoice[]
-  total: number | string
+  created_at: Date
+  data: Record<string, any>
+  notification_status?: 'not_yet' | 'success' | 'failed'
+  notification_sent_at?: Date | null
+  notification_error?: string | null
 }
-
 
 export function useInvoiceData() {
-  const [people, setPeople] = useState<Person[]>([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
-    const [uploading, setUploading] = useState(false)
-    const [selectedFile, setSelectedFile] = useState<File | null>(null)
-    const fileInputRef = useRef<HTMLInputElement>(null)
-    
+  const [people, setPeople] = useState<Row[]>([])
+  const [imports, setImports] = useState<Import[]>([])
+  const [selectedImportId, setSelectedImportId] = useState<number | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-
-    useEffect(() => {
+  useEffect(() => {
     fetchPeople()
-  }, [])
+  }, [selectedImportId])
 
   async function fetchPeople() {
     try {
       setLoading(true)
       setError(null)
 
-      const response = await fetch('/api/people')
+      const url = selectedImportId
+        ? `/api/people?importId=${selectedImportId}`
+        : '/api/people'
+
+      const response = await fetch(url)
 
       if (!response.ok) {
         throw new Error('Failed to fetch data')
       }
 
       const data = await response.json()
-      setPeople(data.people)
+
+      setPeople(data.rows)
+      setImports(data.imports || [])
+      if (data.selectedImportId && !selectedImportId) {
+        setSelectedImportId(data.selectedImportId)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -49,8 +59,7 @@ export function useInvoiceData() {
     }
   }
 
-
-    async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
     if (!file) return
 
@@ -67,13 +76,11 @@ export function useInvoiceData() {
 
     setSelectedFile(file)
   }
-   
-  
+
   async function handleImport() {
     if (!selectedFile) return
 
     setUploading(true)
-
     try {
       const formData = new FormData()
       formData.append('file', selectedFile)
@@ -86,7 +93,7 @@ export function useInvoiceData() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to import CSV')
+        throw new Error(data.error || 'Failed to import file')
       }
 
       toast.success(data.message || 'Import successful!', {
@@ -99,7 +106,8 @@ export function useInvoiceData() {
         fileInputRef.current.value = ''
       }
 
-      fetchPeople()
+      setSelectedImportId(null)
+      await fetchPeople()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to import file', {
         duration: 5000,
@@ -110,36 +118,68 @@ export function useInvoiceData() {
     }
   }
 
+  async function handleDeleteImport(importId: number) {
+    try {
+      const response = await fetch(`/api/people?importId=${importId}`, {
+        method: 'DELETE'
+      })
 
-return {
-      people,
-      loading,
-      error,
-      uploading,
-      selectedFile,
-      setSelectedFile,
-      fileInputRef,
-      fetchPeople,
-      handleFileUpload,
-      handleImport
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to delete import')
+      }
+
+      toast.success('Import deleted successfully', {
+        duration: 4000,
+        className: 'border-green-500 bg-green-50'
+      })
+
+      if (selectedImportId === importId) {
+        setSelectedImportId(null)
+      }
+
+      await fetchPeople()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete import', {
+        duration: 5000,
+        className: 'border-red-500 bg-red-50'
+      })
     }
   }
 
-export function useRowSelection(people: Person[]) {
-    const [rowSelection, setRowSelection] = useState({})
-    const selectedPeople = useMemo(() => {
+  return {
+    people,
+    imports,
+    selectedImportId,
+    setSelectedImportId,
+    loading,
+    error,
+    uploading,
+    selectedFile,
+    setSelectedFile,
+    handleFileUpload,
+    handleImport,
+    handleDeleteImport,
+    fileInputRef
+  }
+}
+
+export function useRowSelection(people: Row[]) {
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
+
+  const selectedPeople = useMemo(() => {
     const selectedIndices = Object.keys(rowSelection).filter(key => rowSelection[key as keyof typeof rowSelection])
     return people.filter((_, index) => selectedIndices.includes(String(index)))
   }, [rowSelection, people])
 
-    return {
-      rowSelection,
-      setRowSelection,
-      selectedPeople
-    }
+  return {
+    rowSelection,
+    setRowSelection,
+    selectedPeople
   }
+}
 
-export function useNotifications(selectedPeople: Person[], setRowSelection: (val: Record<string, boolean>) => void) {
+export function useNotifications(selectedPeople: Row[], setRowSelection: (val: Record<string, boolean>) => void) {
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false)
   const [sending, setSending] = useState(false)
 

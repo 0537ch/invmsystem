@@ -3,21 +3,17 @@ import postgres from 'postgres'
 let sql: postgres.Sql<Record<string, never>> | null = null
 
 export function getDb() {
-  if (!sql) {
-    const url = process.env.DATABASE_URL
-
-    if (!url) {
-      throw new Error('DATABASE_URL environment variable is not set')
+    if (!sql) {
+      const url = process.env.DATABASE_URL
+      if (!url) {
+        throw new Error('DATABASE_URL environment variable is not set')
+      }
+      sql = postgres(url, {
+        prepare: false,
+      })
     }
-
-    sql = postgres(url, {
-      ssl: 'require',
-      prepare: false,  // Disable prepared statements to avoid caching issues
-    })
+    return sql
   }
-
-  return sql
-}
 
 export function resetDbConnection() {
   if (sql) {
@@ -120,4 +116,26 @@ export function getBannerStatus(
   }
 
   return 'inactive'
+}
+
+// Notification/Import types from notify-app
+export type Import = {
+  id: number
+  file_name: string
+  is_active: boolean
+  uploaded_at: Date
+}
+
+export type Row = {
+  id: number
+  import_id: number
+  data: Record<string, any>
+  created_at: Date
+  notification_status?: 'not_yet' | 'success' | 'failed'
+  notification_sent_at?: Date | null
+  notification_error?: string | null
+}
+
+export type RowWithImport = Row & {
+  file_name: string
 }
