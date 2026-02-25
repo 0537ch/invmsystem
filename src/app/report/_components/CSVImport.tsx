@@ -1,41 +1,33 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useRef } from 'react'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { CSVImportService } from '@/services/csvImportService'
+import { useCSVImport } from '../_hooks/use-csv-import'
 
 interface CSVImportProps {
   onImportSuccess?: () => void
 }
 
 export default function CSVImport({ onImportSuccess }: CSVImportProps) {
-  const [uploading, setUploading] = useState(false)
+  const { uploading, importCSV } = useCSVImport()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
     if (!file) return
 
-    setUploading(true)
-
     try {
-      const result = await CSVImportService.importCSV(file)
+      const result = await importCSV(file, onImportSuccess)
 
       toast.success(result.message || 'Import successful!')
 
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
-
-      if (onImportSuccess) {
-        onImportSuccess()
-      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to import CSV')
-    } finally {
-      setUploading(false)
     }
   }
 
