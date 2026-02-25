@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { CSVImportService } from '@/services/csvImportService'
 
 interface CSVImportProps {
   onImportSuccess?: () => void
@@ -17,29 +18,12 @@ export default function CSVImport({ onImportSuccess }: CSVImportProps) {
     const file = event.target.files?.[0]
     if (!file) return
 
-    if (!file.name.endsWith('.csv')) {
-      toast.error('Please upload a CSV file')
-      return
-    }
-
     setUploading(true)
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
+      const result = await CSVImportService.importCSV(file)
 
-      const response = await fetch('/api/import', {
-        method: 'POST',
-        body: formData
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to import CSV')
-      }
-
-      toast.success(data.message || 'Import successful!')
+      toast.success(result.message || 'Import successful!')
 
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
