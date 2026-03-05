@@ -1,10 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { AppSidebar } from '@/components/app-sidebar'
 import InvoiceTable from '@/app/report/_components/InvoiceTable'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import { Input } from '@/components/ui/input'
 import { AuthProvider } from '@/components/auth-provider'
 
 export default function InvoicePage() {
@@ -12,11 +10,10 @@ export default function InvoicePage() {
   return (
     <AuthProvider>
       <SidebarProvider>
-      {/* Gradient Background - needs to be outside SidebarInset */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-950 dark:to-gray-900">
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-linear-to-br from-slate-50 to-slate-100 dark:from-gray-950 dark:to-gray-900">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-400/15 rounded-full blur-3xl" />
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-400/15 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-400/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-cyan-400/10 rounded-full blur-3xl" />
       </div>
       <AppSidebar />
       <SidebarInset className="bg-transparent overflow-x-hidden">

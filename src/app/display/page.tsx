@@ -1,5 +1,5 @@
 import { BannerDisplay } from "./_components/BannerDisplay";
 
 export default function DisplayPage() {
-  return <BannerDisplay />;
+  return <div className="text-center"> next </div>;
 }

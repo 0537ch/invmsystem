@@ -4,7 +4,15 @@ import { verifyToken } from './lib/jwt'
 
 export const runtime = 'nodejs'
 
-const publicRoutes = ['/login', '/api/auth/login', '/api/auth/session', '/api/auth/logout']
+const publicRoutes = [
+  '/login',
+  '/api/auth/login',
+  '/api/auth/session',
+  '/api/auth/logout',
+  '/display',
+  '/api/banner/location',
+  '/api/banner/events',
+]
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
