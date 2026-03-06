@@ -98,6 +98,7 @@ export const BannerDisplay = ({
           <video
             src={currentBanner.url}
             autoPlay
+            muted
             controls
             playsInline
             className="w-full h-full object-contain"

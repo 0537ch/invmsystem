@@ -11,6 +11,27 @@ export async function GET() {
       ORDER BY position ASC
     `
 
+    // Auto-disable expired banners that are still active
+    const today = new Date()
+    const currentDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+
+    for (const banner of banners) {
+      if (banner.active && banner.end_date) {
+        const endDate = typeof banner.end_date === 'string'
+          ? banner.end_date.split('T')[0]
+          : banner.end_date
+
+        if (endDate < currentDate) {
+          await sql`
+            UPDATE banners
+            SET active = false
+            WHERE id = ${banner.id}
+          `
+          banner.active = false
+        }
+      }
+    }
+
     const bannersWithLocations = await Promise.all(
       banners.map(async (banner) => {
         const locations = await sql<Location[]>`
@@ -58,7 +79,12 @@ export async function POST(request: Request) {
 
     const formatDate = (date: string | Date | null): string | null => {
       if (!date) return null;
-      if (typeof date === 'string') return date;
+      // Parse string dates (including ISO format from JSON.stringify)
+      if (typeof date === 'string') {
+        const parsed = new Date(date);
+        if (isNaN(parsed.getTime())) return date; // Invalid date, return as-is
+        date = parsed;
+      }
 
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -76,6 +102,30 @@ export async function POST(request: Request) {
       )
     }
 
+    // Validate: Don't allow active banner with expired end_date
+    if (active && endDate) {
+      const today = new Date()
+      const currentDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+      if (endDate < currentDate) {
+        return NextResponse.json(
+          { error: 'Cannot create active banner with expired end date. Please update the end date or disable the banner.' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Auto-disable if end_date is in the past
+    let finalActive = active
+    let wasAutoDisabled = false
+    if (active && endDate) {
+      const today = new Date()
+      const currentDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+      if (endDate < currentDate) {
+        finalActive = false
+        wasAutoDisabled = true
+      }
+    }
+
     const [maxPos] = await sql<{ max: number | null }[]>`
       SELECT COALESCE(MAX(position), -1) as max FROM banners
     `
@@ -84,7 +134,7 @@ export async function POST(request: Request) {
 
     const [banner] = await sql<Banner[]>`
       INSERT INTO banners (type, url, duration, title, description, active, image_source, position, start_date, end_date)
-      VALUES (${type}, ${url}, ${duration}, ${title}, ${description}, ${active}, ${image_source}, ${newPosition}, ${startDate}, ${endDate})
+      VALUES (${type}, ${url}, ${duration}, ${title}, ${description}, ${finalActive}, ${image_source}, ${newPosition}, ${startDate}, ${endDate})
       RETURNING *
     `
 
@@ -108,6 +158,7 @@ export async function POST(request: Request) {
           locations,
           status: getBannerStatus(banner.active, banner.start_date, banner.end_date),
         },
+        wasAutoDisabled,
       },
       { status: 201 }
     )

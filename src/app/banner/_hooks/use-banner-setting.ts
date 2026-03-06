@@ -37,6 +37,8 @@ export function useBannerSetting() {
   const [imageSource, setImageSource] = useState<ImageSourceType>('url');
   const [htmlFile, setHtmlFile] = useState<File | null>(null);
   const [editHtmlFile, setEditHtmlFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedFilePath, setUploadedFilePath] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
   const [newItem, setNewItem] = useState<Partial<BannerItem>>({
@@ -103,10 +105,6 @@ export function useBannerSetting() {
     } else {
       if (imageSource === 'gdrive') {
         itemType = 'gdrive';
-      } else if (imageSource === 'upload') {
-        itemType = 'image';
-        alert('Image upload not implemented yet. Please use URL.');
-        return;
       } else {
         itemType = 'image';
       }
@@ -131,7 +129,14 @@ export function useBannerSetting() {
       });
 
       if (response.ok) {
+        const data = await response.json();
         await fetchBanners();
+
+        // Show message if banner was auto-disabled due to expired date
+        if (data.wasAutoDisabled) {
+          toast.warning('Banner otomatis dinonaktifkan karena tanggal berakhir sudah lewat');
+        }
+
         setNewItem({ type: 'image', url: '', duration: 10, title: '', description: '' });
         setContentCategory('image');
         setImageSource('url');
@@ -143,7 +148,7 @@ export function useBannerSetting() {
       }
     } catch (error) {
       console.error('Error creating banner:', error);
-      alert('Failed to create banner');
+      toast.error('Failed to create banner');
     } finally {
       setIsAdding(false);
     }
@@ -161,11 +166,11 @@ export function useBannerSetting() {
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('Delete failed:', errorData);
-        alert(errorData.error || 'Failed to delete banner');
+        toast.error(errorData.error || 'Failed to delete banner');
       }
     } catch (error) {
       console.error('Error deleting banner:', error);
-      alert('Failed to delete banner');
+      toast.error('Failed to delete banner');
     } finally {
       setIsDeleting(null);
     }
@@ -224,10 +229,6 @@ export function useBannerSetting() {
     } else {
       if (editImageSource === 'gdrive') {
         itemType = 'gdrive';
-      } else if (editImageSource === 'upload') {
-        itemType = 'image';
-        alert('Image upload not implemented yet. Please use URL.');
-        return;
       } else {
         itemType = 'image';
       }
@@ -256,7 +257,14 @@ export function useBannerSetting() {
       });
 
       if (response.ok) {
+        const data = await response.json();
         await fetchBanners();
+
+        // Show message if banner was auto-disabled due to expired date
+        if (data.wasAutoDisabled) {
+          toast.warning('Banner otomatis dinonaktifkan karena tanggal berakhir sudah lewat');
+        }
+
         setIsEditDialogOpen(false);
         setEditingIndex(null);
         setEditHtmlFile(null);
@@ -266,7 +274,7 @@ export function useBannerSetting() {
       }
     } catch (error) {
       console.error('Error updating banner:', error);
-      alert('Failed to update banner');
+      toast.error('Failed to update banner');
     } finally {
       setIsSaving(false);
     }
@@ -277,7 +285,7 @@ export function useBannerSetting() {
     const targetPosition = newPosition - 1;
 
     if (targetPosition < 0 || targetPosition >= bannerItems.length) {
-      alert(`Posisi harus antara 1 dan ${bannerItems.length}`);
+      toast.error(`Posisi harus antara 1 dan ${bannerItems.length}`);
       return;
     }
 
@@ -297,11 +305,11 @@ export function useBannerSetting() {
       if (response.ok) {
         await fetchBanners();
       } else {
-        alert('Failed to update position');
+        toast.error('Failed to update position');
       }
     } catch (error) {
       console.error('Error updating position:', error);
-      alert('Failed to update position');
+      toast.error('Failed to update position');
     } finally {
       setIsUpdatingPosition(null);
     }
@@ -322,13 +330,45 @@ export function useBannerSetting() {
       if (response.ok) {
         await fetchBanners();
       } else {
-        alert('Failed to update active status');
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(errorData.error || 'Failed to update active status');
       }
     } catch (error) {
       console.error('Error toggling active status:', error);
-      alert('Failed to update active status');
+      toast.error('Failed to update active status');
     } finally {
       setIsToggling(null);
+    }
+  };
+
+  const handleUpload = async (file: File): Promise<string | null> => {
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Upload failed' }));
+        toast.error(errorData.error || 'Failed to upload file');
+        return null;
+      }
+
+      const data = await response.json();
+      const filePath = data.path;
+      setUploadedFilePath(filePath);
+      toast.success('File uploaded successfully!');
+      return filePath;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast.error('Failed to upload file');
+      return null;
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -403,5 +443,9 @@ export function useBannerSetting() {
     handlePositionChange,
     handleToggleActive,
     handleSyncDisplays,
+    isUploading,
+    uploadedFilePath,
+    setUploadedFilePath,
+    handleUpload,
   };
 }

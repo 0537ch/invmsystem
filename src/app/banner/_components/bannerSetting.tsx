@@ -54,6 +54,9 @@ const BannerSetting = () => {
     handlePositionChange,
     handleToggleActive,
     handleSyncDisplays,
+    isUploading,
+    uploadedFilePath,
+    handleUpload,
   } = useBannerSetting();
 
   const getIconForType = (type: BannerItemType) => {
@@ -149,6 +152,9 @@ const BannerSetting = () => {
               onSubmit={handleAddItem}
               onCancel={() => setIsAddDialogOpen(false)}
               fileInputRef={fileInputRef}
+              onUpload={handleUpload}
+              isUploading={isUploading}
+              uploadedFilePath={uploadedFilePath}
             />
           </DialogContent>
         </Dialog>
@@ -176,6 +182,9 @@ const BannerSetting = () => {
               onSubmit={handleSaveEdit}
               onCancel={() => setIsEditDialogOpen(false)}
               fileInputRef={editFileInputRef}
+              onUpload={handleUpload}
+              isUploading={isUploading}
+              uploadedFilePath={uploadedFilePath}
             />
           </DialogContent>
         </Dialog>

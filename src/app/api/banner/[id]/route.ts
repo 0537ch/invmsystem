@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getDb, getBannerStatus } from '@/lib/db'
+import { deleteUploadedFile, isUploadedFile } from '@/lib/file-delete'
 import type { Banner, Location } from '@/lib/db'
 
 export async function PUT(
@@ -28,7 +29,12 @@ export async function PUT(
 
     const formatDate = (date: string | Date | null): string | null => {
       if (!date) return null;
-      if (typeof date === 'string') return date;
+      // Parse string dates (including ISO format from JSON.stringify)
+      if (typeof date === 'string') {
+        const parsed = new Date(date);
+        if (isNaN(parsed.getTime())) return date; // Invalid date, return as-is
+        date = parsed;
+      }
 
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -64,6 +70,41 @@ export async function PUT(
       )
     }
 
+    // Delete old uploaded file if url is changing
+    const isNewUploadedFile = url.startsWith('/uploads/');
+    const wasOldUploadedFile = isUploadedFile(currentBanner.url);
+
+    if (wasOldUploadedFile && isNewUploadedFile && currentBanner.url !== url) {
+      // Old file was uploaded, new file is also uploaded and different
+      await deleteUploadedFile(currentBanner.url).catch(err => {
+        console.error('Failed to delete old file:', err);
+        // Don't fail the request, just log the error
+      });
+    }
+
+    // Auto-disable if end_date is changed to past date
+    let finalActive = active
+    let wasAutoDisabled = false
+
+    const today = new Date()
+    const currentDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+
+    // Check if we need to auto-disable due to expired end_date
+    if (endDate && endDate < currentDate) {
+      if (active === true) {
+        // User is trying to enable but end_date is expired
+        return NextResponse.json(
+          { error: 'Cannot enable banner with expired end date. Please update the end date first.' },
+          { status: 400 }
+        )
+      } else if (active === undefined && currentBanner.active === true) {
+        // User didn't specify active, but current banner is active and end_date is expired
+        // Auto-disable it
+        finalActive = false
+        wasAutoDisabled = true
+      }
+    }
+
     if (position !== undefined && position !== currentBanner.position) {
       const oldPosition = currentBanner.position
       const newPosition = position
@@ -91,7 +132,7 @@ export async function PUT(
         duration = ${duration},
         title = ${title},
         description = ${description},
-        ${active !== undefined ? sql`active = ${active},` : sql``}
+        ${finalActive !== undefined ? sql`active = ${finalActive},` : sql``}
         image_source = ${image_source},
         ${position !== undefined ? sql`position = ${position},` : sql``}
         start_date = ${startDate},
@@ -126,6 +167,7 @@ export async function PUT(
         locations,
         status: getBannerStatus(banner.active, banner.start_date, banner.end_date),
       },
+      wasAutoDisabled,
     })
   } catch (error) {
     console.error('Error updating banner:', error)
@@ -137,7 +179,7 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -163,6 +205,14 @@ export async function DELETE(
         { error: 'Banner not found' },
         { status: 404 }
       )
+    }
+
+    // Delete uploaded file if exists
+    if (isUploadedFile(banner.url)) {
+      await deleteUploadedFile(banner.url).catch(err => {
+        console.error('Failed to delete banner file:', err);
+        // Don't fail the request, just log the error
+      });
     }
 
     await sql`
