@@ -118,7 +118,6 @@ export function getBannerStatus(
   return 'inactive'
 }
 
-// Notification/Import types from notify-app
 export type Import = {
   id: number
   file_name: string
@@ -129,7 +128,7 @@ export type Import = {
 export type Row = {
   id: number
   import_id: number
-  data: Record<string, any>
+  data: Record<string, unknown>
   created_at: Date
   notification_status?: 'not_yet' | 'success' | 'failed'
   notification_sent_at?: Date | null

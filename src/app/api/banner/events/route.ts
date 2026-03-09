@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import '@/lib/cron';
 
 type Controller = ReadableStreamDefaultController<Uint8Array>
 const controllers = new Set<Controller>()

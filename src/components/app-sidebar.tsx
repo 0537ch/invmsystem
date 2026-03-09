@@ -11,7 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
-  FileText, MessageCircleWarning, Monitor, MapPin, Image, LogOut, User
+   MessageCircleWarning, MapPin, Image, LogOut, User
 } from "lucide-react";
 import type { Route } from "./nav-main";
 import DashboardNavigation from "./nav-main";
@@ -35,18 +35,6 @@ const dashboardRoutes: Route[] = [
     title: "Locations",
     icon: <MapPin className="size-4" />,
     link: "/locations",
-  },
-  {
-    id: "display",
-    title: "Display",
-    icon: <Monitor className="size-4" />,
-    link: "/display",
-  },
-  {
-    id: "report",
-    title: "Report",
-    icon: <FileText className="size-4" />,
-    link: "/report",
   },
 ];
 
