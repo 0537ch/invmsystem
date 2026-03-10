@@ -26,13 +26,13 @@ import {
 const dashboardRoutes: Route[] = [
   {
     id: "banner",
-    title: "Banners",
+    title: "Banner",
     icon: <Image className="size-4" />,
     link: "/banner",
   },
   {
     id: "locations",
-    title: "Locations",
+    title: "Lokasi",
     icon: <MapPin className="size-4" />,
     link: "/locations",
   },
@@ -60,8 +60,8 @@ export function AppSidebar() {
         <a href="/banner" className="flex items-center gap-2">
           <MessageCircleWarning className="h-8 w-8"/>
           {!isCollapsed && (
-            <span className="font-semibold text-black dark:text-white">
-              Notification Management
+            <span className="font-semibold text-foreground">
+              Manajemen Notifikasi
             </span>
           )}
         </a>
@@ -85,7 +85,7 @@ export function AppSidebar() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             {!isCollapsed ? (
-              <div className="flex items-center gap-2 px-2 py-2 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted/70 transition-colors">
+              <div className="flex items-center gap-2 px-2 py-2 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted/70 focus-visible:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring transition-colors outline-none">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <div className="flex flex-col flex-1 min-w-0">
                   <span className="text-sm font-medium truncate">{user?.name || user?.username}</span>
@@ -93,7 +93,7 @@ export function AppSidebar() {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center px-2 py-2 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted/70 transition-colors">
+              <div className="flex items-center justify-center px-2 py-2 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted/70 focus-visible:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring transition-colors outline-none">
                 <User className="h-4 w-4 text-muted-foreground" />
               </div>
             )}
@@ -101,7 +101,7 @@ export function AppSidebar() {
           <DropdownMenuContent align="end" side="top" className="w-48">
             <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
               <LogOut className="h-4 w-4 mr-2" />
-              Logout
+              Keluar
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

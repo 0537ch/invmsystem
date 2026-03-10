@@ -2,6 +2,7 @@
 
 import { Youtube, Globe, Image as ImageIcon, HardDrive, Trash2, Pencil, Plus, Video, RefreshCw, Eye } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -89,14 +90,14 @@ const BannerSetting = () => {
   const getStatusInfo = (status: string | undefined) => {
     switch (status) {
       case 'live':
-        return { label: 'Live', variant: 'default' as const, className: 'bg-green-500 text-white border-transparent' };
+        return { label: 'Live', variant: 'default' as const };
       case 'scheduled':
-        return { label: 'Scheduled', variant: 'secondary' as const, className: 'bg-yellow-500 text-white border-transparent' };
+        return { label: 'Scheduled', variant: 'secondary' as const };
       case 'expired':
-        return { label: 'Expired', variant: 'destructive' as const, className: 'bg-red-500 text-white border-transparent' };
+        return { label: 'Expired', variant: 'destructive' as const };
       case 'inactive':
       default:
-        return { label: 'Inactive', variant: 'outline' as const, className: 'bg-gray-400 text-white border-transparent' };
+        return { label: 'Inactive', variant: 'outline' as const };
     }
   };
 
@@ -108,9 +109,11 @@ const BannerSetting = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6 h-full overflow-y-auto">
-        <div className="text-center py-20">
-          <p className="text-muted-foreground text-lg">Loading banners...</p>
+      <div className="container mx-auto p-4 sm:p-6 h-full overflow-y-auto">
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full" />
+          ))}
         </div>
       </div>
     );
@@ -216,7 +219,7 @@ const BannerSetting = () => {
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <Badge className={getStatusInfo(item.status).className}>{getStatusInfo(item.status).label}</Badge>
+                      <Badge variant={getStatusInfo(item.status).variant}>{getStatusInfo(item.status).label}</Badge>
                       <span className="font-medium truncate">{item.title || item.type}</span>
                     </div>
                   </div>
@@ -224,28 +227,31 @@ const BannerSetting = () => {
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="size-8"
+                      className="size-8 sm:size-9 min-h-[44px] min-w-[44px] sm:min-h-0"
                       onClick={() => handleViewDetails(item)}
-                      title="View Details"
+                      title="Lihat Detail"
+                      aria-label={`Lihat detail untuk ${item.title || item.type}`}
                     >
                       <Eye className="size-3" />
                     </Button>
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="size-8"
+                      className="size-8 sm:size-9 min-h-[44px] min-w-[44px] sm:min-h-0"
                       onClick={() => handleEditItem(index)}
                       title="Edit"
+                      aria-label={`Edit ${item.title || item.type}`}
                     >
                       <Pencil className="size-3" />
                     </Button>
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="size-8"
+                      className="size-8 sm:size-9 min-h-[44px] min-w-[44px] sm:min-h-0"
                       onClick={() => handleDeleteItem(item.id)}
                       disabled={isDeleting === item.id}
-                      title="Delete"
+                      title="Hapus"
+                      aria-label={`Hapus ${item.title || item.type}`}
                     >
                       {isDeleting === item.id ? (
                         <Spinner className="size-3 text-destructive" />
@@ -418,7 +424,7 @@ const BannerSetting = () => {
                     {/* Title */}
                     <td className="p-2 align-middle">
                       <div className="flex items-center gap-2">
-                        <Badge className={getStatusInfo(item.status).className}>{getStatusInfo(item.status).label}</Badge>
+                        <Badge variant={getStatusInfo(item.status).variant}>{getStatusInfo(item.status).label}</Badge>
                         <span className="font-medium">{item.title || item.type}</span>
                       </div>
                     </td>
@@ -454,28 +460,31 @@ const BannerSetting = () => {
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="size-8"
+                          className="size-8 sm:size-9 min-h-[44px] min-w-[44px] sm:min-h-0"
                           onClick={() => handleViewDetails(item)}
                           title="View Details"
+                          aria-label={`View details for ${item.title || item.type}`}
                         >
                           <Eye className="size-3" />
                         </Button>
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="size-8"
+                          className="size-8 sm:size-9 min-h-[44px] min-w-[44px] sm:min-h-0"
                           onClick={() => handleEditItem(index)}
                           title="Edit"
+                          aria-label={`Edit ${item.title || item.type}`}
                         >
                           <Pencil className="size-3" />
                         </Button>
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="size-8"
+                          className="size-8 sm:size-9 min-h-[44px] min-w-[44px] sm:min-h-0"
                           onClick={() => handleDeleteItem(item.id)}
                           disabled={isDeleting === item.id}
                           title="Delete"
+                          aria-label={`Delete ${item.title || item.type}`}
                         >
                           {isDeleting === item.id ? (
                             <Spinner className="size-3 text-destructive" />

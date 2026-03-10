@@ -96,7 +96,7 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
                             <Link
                               href={subRoute.link}
                               prefetch={true}
-                              className="flex items-center rounded-md px-4 py-1.5 text-sm font-medium text-muted-foreground hover:bg-sidebar-muted hover:text-foreground"
+                              className="flex items-center rounded-md px-4 py-1.5 text-sm font-medium text-muted-foreground hover:bg-sidebar-muted hover:text-foreground focus-visible:bg-sidebar-muted focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring outline-none transition-colors"
                             >
                               {subRoute.title}
                             </Link>
@@ -116,7 +116,7 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
                     "flex items-center rounded-lg px-2 transition-colors",
                     isActive
                       ? "bg-primary text-primary-foreground font-semibold shadow-sm"
-                      : "text-muted-foreground hover:bg-sidebar-muted hover:text-foreground",
+                      : "text-muted-foreground hover:bg-sidebar-muted hover:text-foreground focus-visible:bg-sidebar-muted focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring outline-none",
                     isCollapsed && "justify-center"
                   )}
                 >

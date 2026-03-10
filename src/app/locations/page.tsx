@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Trash2, Plus, Play } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
   DialogContent,
@@ -70,11 +72,11 @@ export default function LocationsPage() {
         setIsOpen(false);
       } else {
         const errorData = await response.json().catch(() => ({}));
-        alert(errorData.error || 'Failed to create location');
+        alert(errorData.error || 'Gagal membuat lokasi');
       }
     } catch (error) {
       console.error('Error creating location:', error);
-      alert('Failed to create location');
+      alert('Gagal membuat lokasi');
     }
   };
 
@@ -128,19 +130,19 @@ export default function LocationsPage() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="size-4 mr-2" />
-              Add Location
+              Tambah Lokasi
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add New Location</DialogTitle>
               <DialogDescription>
-                Create a new display location. The slug will be used in the URL (e.g., /display/lobby)
+                Buat lokasi tampilan baru. Slug akan digunakan dalam URL (contoh: /display/lobby)
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Name</Label>
+                <Label>Nama</Label>
                 <Input
                   placeholder="Lobby"
                   value={newLocationName}
@@ -155,16 +157,16 @@ export default function LocationsPage() {
                   onChange={(e) => setNewLocationSlug(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  This will be used in the URL: /display/{newLocationSlug}
+                  Ini akan digunakan dalam URL: /display/{newLocationSlug}
                 </p>
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsOpen(false)}>
-                Cancel
+                Batal
               </Button>
               <Button onClick={handleAddLocation}>
-                Add Location
+                Tambah Lokasi
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -172,13 +174,15 @@ export default function LocationsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-20">
-          <p className="text-muted-foreground">Loading locations...</p>
+        <div className="space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} className="h-32 w-full" />
+          ))}
         </div>
       ) : locations.length === 0 ? (
         <div className="text-center py-20 border-2 border-dashed rounded-lg px-4">
-          <p className="text-muted-foreground text-lg mb-2">No locations yet</p>
-          <p className="text-muted-foreground text-sm">Click "Add Location" to create one</p>
+          <p className="text-muted-foreground text-lg mb-2">Belum ada lokasi</p>
+          <p className="text-muted-foreground text-sm">Klik "Tambah Lokasi" untuk membuat baru</p>
         </div>
       ) : (
         <>
@@ -198,6 +202,7 @@ export default function LocationsPage() {
                     className="size-8 flex-shrink-0"
                     onClick={() => handleDeleteLocation(location.id)}
                     title="Delete"
+                    aria-label={`Delete location: ${location.name}`}
                   >
                     <Trash2 className="size-4 text-destructive" />
                   </Button>
@@ -210,7 +215,7 @@ export default function LocationsPage() {
                     href={`/display/${location.slug}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-mono text-xs text-blue-600 hover:underline break-all"
+                    className="font-mono text-xs text-primary hover:underline break-all"
                   >
                     /display/{location.slug}
                   </a>
@@ -234,7 +239,7 @@ export default function LocationsPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-muted-foreground italic">No banners assigned</p>
+                    <p className="text-xs text-muted-foreground italic">Tidak ada banner</p>
                   )}
                 </div>
               </div>
@@ -242,15 +247,15 @@ export default function LocationsPage() {
           </div>
 
           {/* Desktop Table View */}
-          <div className="hidden md:block rounded-md border">
-            <table className="w-full caption-bottom text-sm">
+          <div className="hidden lg:block rounded-md border overflow-x-auto">
+            <table className="w-full min-w-[600px] caption-bottom text-sm">
               <thead className="[&_tr]:border-b">
                 <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                  <th className="h-10 px-4 text-left align-middle font-medium">Name</th>
+                  <th className="h-10 px-4 text-left align-middle font-medium">Nama</th>
                   <th className="h-10 px-4 text-left align-middle font-medium">Slug</th>
                   <th className="h-10 px-4 text-left align-middle font-medium">URL</th>
-                  <th className="h-10 px-4 text-left align-middle font-medium">Banners</th>
-                  <th className="h-10 px-4 text-left align-middle font-medium w-24">Actions</th>
+                  <th className="h-10 px-4 text-left align-middle font-medium">Banner</th>
+                  <th className="h-10 px-4 text-left align-middle font-medium w-24">Aksi</th>
                 </tr>
               </thead>
               <tbody className="[&_tr:last-child]:border-0">
@@ -263,7 +268,7 @@ export default function LocationsPage() {
                         href={`/display/${location.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-mono text-xs text-blue-600 hover:underline"
+                        className="font-mono text-xs text-primary hover:underline"
                       >
                         /display/{location.slug}
                       </a>
@@ -279,16 +284,17 @@ export default function LocationsPage() {
                           ))}
                         </div>
                       ) : (
-                        <span className="text-xs text-muted-foreground">No banners assigned</span>
+                        <span className="text-xs text-muted-foreground">Tidak ada banner</span>
                       )}
                     </td>
                     <td className="p-4 align-middle">
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="size-8"
+                        className="size-8 sm:size-9 min-h-[44px] min-w-[44px] sm:min-h-0"
                         onClick={() => handleDeleteLocation(location.id)}
                         title="Delete"
+                        aria-label={`Delete location: ${location.name}`}
                       >
                         <Trash2 className="size-3 text-destructive" />
                       </Button>

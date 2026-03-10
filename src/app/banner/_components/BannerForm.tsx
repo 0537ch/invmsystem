@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Upload } from 'lucide-react';
+import { Upload, AlertTriangle } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import type { BannerItem, ContentCategory, ImageSourceType } from '../_hooks/use-banner-setting';
 import { DatePickerWithRange } from './datepicker';
@@ -136,8 +136,9 @@ export function BannerForm({
   return (
     <div className="space-y-4 py-4">
       <div className="space-y-2">
-        <Label>Judul (opsional)</Label>
+        <Label htmlFor="banner-title">Judul (opsional)</Label>
         <Input
+          id="banner-title"
           placeholder="Item Banner Saya"
           value={data.title || ''}
           onChange={(e) => onDataChange({ ...data, title: e.target.value })}
@@ -145,8 +146,9 @@ export function BannerForm({
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm sm:text-base">Deskripsi (opsional)</Label>
+        <Label htmlFor="banner-description" className="text-sm sm:text-base">Deskripsi (opsional)</Label>
         <textarea
+          id="banner-description"
           placeholder="Deskripsi singkat tentang banner ini..."
           value={data.description || ''}
           onChange={(e) => onDataChange({ ...data, description: e.target.value })}
@@ -155,12 +157,12 @@ export function BannerForm({
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm sm:text-base">Tipe Konten</Label>
+        <Label htmlFor="banner-type" className="text-sm sm:text-base">Tipe Konten</Label>
         <Select
           value={category}
           onValueChange={onCategoryChange}
         >
-          <SelectTrigger>
+          <SelectTrigger id="banner-type">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -194,9 +196,10 @@ export function BannerForm({
       <div className="space-y-2">
         {category === 'html' ? (
           <>
-            <Label>File HTML atau URL Website</Label>
+            <Label htmlFor="html-url">File HTML atau URL Website</Label>
             <div className="space-y-2">
               <Button
+                type="button"
                 variant="outline"
                 className="w-full"
                 onClick={() => fileInputRef?.current?.click()}
@@ -228,6 +231,7 @@ export function BannerForm({
                 </div>
               </div>
               <Input
+                id="html-url"
                 placeholder="https://example.com"
                 value={data.url || ''}
                 onChange={(e) => {
@@ -239,13 +243,18 @@ export function BannerForm({
               />
               <p className="text-xs text-muted-foreground">
                 Upload file HTML lokal atau tempel URL website untuk di-embed
-                {htmlFile && <span className="text-amber-600 block mt-1">⚠️ File upload tidak akan tersimpan setelah refresh halaman</span>}
+                {htmlFile && (
+                  <span className="text-amber-600 flex items-center gap-1 mt-1">
+                    <AlertTriangle className="size-3" />
+                    File upload tidak akan tersimpan setelah refresh halaman
+                  </span>
+                )}
               </p>
             </div>
           </>
         ) : category === 'image' ? (
           <>
-            <Label>Sumber Gambar</Label>
+            <Label htmlFor="image-url">Sumber Gambar</Label>
             <div className="flex gap-4 mb-3">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -270,6 +279,7 @@ export function BannerForm({
             </div>
             {inputSource === 'url' ? (
               <Input
+                id="image-url"
                 placeholder="https://example.com/image.jpg"
                 value={data.url?.startsWith('/uploads/') ? '' : (data.url || '')}
                 onChange={(e) => onDataChange({ ...data, url: e.target.value })}
@@ -308,12 +318,13 @@ export function BannerForm({
           </>
         ) : category === 'video' ? (
           <>
-            <Label>Sumber Video</Label>
+            <Label htmlFor="video-url">Sumber Video</Label>
             <div className="flex gap-4 mb-3">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
                   name="video-source"
+                  id="video-source-url"
                   checked={inputSource === 'url'}
                   onChange={() => handleSourceChange('url')}
                   className="cursor-pointer"
@@ -324,6 +335,7 @@ export function BannerForm({
                 <input
                   type="radio"
                   name="video-source"
+                  id="video-source-upload"
                   checked={inputSource === 'upload'}
                   onChange={() => handleSourceChange('upload')}
                   className="cursor-pointer"
@@ -333,6 +345,7 @@ export function BannerForm({
             </div>
             {inputSource === 'url' ? (
               <Input
+                id="video-url"
                 placeholder="https://example.com/video.mp4"
                 value={data.url?.startsWith('/uploads/') ? '' : (data.url || '')}
                 onChange={(e) => onDataChange({ ...data, url: e.target.value })}
@@ -371,11 +384,12 @@ export function BannerForm({
           </>
         ) : (
           <>
-            <Label>
+            <Label htmlFor="youtube-url">
               {category === 'youtube' ? 'URL YouTube' :
                'URL'}
             </Label>
             <Input
+              id="youtube-url"
               placeholder={
                 category === 'youtube' ? 'https://youtube.com/watch?v=...' :
                 'https://example.com'
@@ -392,8 +406,9 @@ export function BannerForm({
 
       {category !== 'youtube' && category !== 'video' && (
         <div className="space-y-2">
-          <Label>Durasi (detik)</Label>
+          <Label htmlFor="banner-duration">Durasi (detik)</Label>
           <Input
+            id="banner-duration"
             type="number"
             min="1"
             value={data.duration === 0 ? '' : (data.duration ?? '')}

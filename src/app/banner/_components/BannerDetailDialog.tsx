@@ -166,8 +166,8 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto max-w-[95vw]">
         <DialogHeader>
-          <DialogTitle>Banner Details</DialogTitle>
-          <DialogDescription>Complete information about this banner</DialogDescription>
+          <DialogTitle>Detail Banner</DialogTitle>
+          <DialogDescription>Informasi lengkap tentang banner ini</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           {/* Preview */}
@@ -176,11 +176,11 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
           {/* Basic Info */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Title</label>
+              <label className="text-sm font-medium text-muted-foreground">Judul</label>
               <p className="text-base">{item.title || '-'}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Type</label>
+              <label className="text-sm font-medium text-muted-foreground">Tipe</label>
               <div className="flex items-center gap-2">
                 {getIconForType(item.type)}
                 <span className="capitalize">{item.type}</span>
@@ -197,7 +197,7 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
           {/* Description */}
           {item.description && (
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Description</label>
+              <label className="text-sm font-medium text-muted-foreground">Deskripsi</label>
               <p className="text-sm mt-1">{item.description}</p>
             </div>
           )}
@@ -207,11 +207,11 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
           {/* Schedule */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Start Date</label>
+              <label className="text-sm font-medium text-muted-foreground">Tanggal Mulai</label>
               <p className="text-base">{formatDate(item.start_date)}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-muted-foreground">End Date</label>
+              <label className="text-sm font-medium text-muted-foreground">Tanggal Selesai</label>
               <p className="text-base">{formatDate(item.end_date)}</p>
             </div>
           </div>
@@ -219,15 +219,15 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
           {/* Duration */}
           {item.type !== 'youtube' && item.type !== 'video' && (
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Duration</label>
-              <p className="text-base">{item.duration} seconds</p>
+              <label className="text-sm font-medium text-muted-foreground">Durasi</label>
+              <p className="text-base">{item.duration} detik</p>
             </div>
           )}
 
           {/* Image Source */}
           {item.type === 'image' && item.imageSource && (
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Image Source</label>
+              <label className="text-sm font-medium text-muted-foreground">Sumber Gambar</label>
               <p className="text-base capitalize">{item.imageSource}</p>
             </div>
           )}
@@ -235,7 +235,7 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
           {/* Locations */}
           {item.locations && item.locations.length > 0 && (
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Assigned Locations</label>
+              <label className="text-sm font-medium text-muted-foreground">Lokasi Terassign</label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {item.locations.map((location) => (
                   <Badge key={location.id} variant="secondary">
