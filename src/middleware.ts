@@ -12,6 +12,7 @@ const publicRoutes = [
   '/display',
   '/api/banner/location',
   '/api/banner/events',
+  '/api/locations'
 ]
 
 export function middleware(request: NextRequest) {
