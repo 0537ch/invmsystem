@@ -23,19 +23,19 @@ async function ensureUploadDir() {
 /**
  * Parse file from FormData
  */
-async function parseFormData(request: Request): Promise<{ file: File; error?: string }> {
+async function parseFormData(request: Request): Promise<{ file: File | null; error?: string }> {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
     if (!file) {
-      return { file: null as any, error: 'No file provided' };
+      return { file: null, error: 'No file provided' };
     }
 
     return { file };
-  } catch (error) {
+  } catch {
     return {
-      file: null as any,
+      file: null,
       error: 'Failed to parse form data'
     };
   }

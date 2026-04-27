@@ -46,7 +46,7 @@ export async function verifyToken(token: string): Promise<boolean> {
     })
 
     return response.ok
-  } catch (error) {
+  } catch {
     return false
   }
 }

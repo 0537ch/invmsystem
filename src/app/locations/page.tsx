@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Trash2, Plus, Play } from 'lucide-react';
-import { Spinner } from '@/components/ui/spinner';
+import { Trash2, Plus } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
@@ -182,7 +181,7 @@ export default function LocationsPage() {
       ) : locations.length === 0 ? (
         <div className="text-center py-20 border-2 border-dashed rounded-lg px-4">
           <p className="text-muted-foreground text-lg mb-2">Belum ada lokasi</p>
-          <p className="text-muted-foreground text-sm">Klik "Tambah Lokasi" untuk membuat baru</p>
+          <p className="text-muted-foreground text-sm">Klik Tambah Lokasi untuk membuat baru</p>
         </div>
       ) : (
         <>

@@ -136,7 +136,7 @@ export async function validateMagicNumber(file: File): Promise<ValidationResult>
     }
 
     return { valid: true };
-  } catch (error) {
+  } catch {
     return {
       valid: false,
       error: 'Failed to read file for validation'

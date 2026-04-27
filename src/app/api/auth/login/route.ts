@@ -15,10 +15,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let companyAuthResponse;
     try {
-      companyAuthResponse = await authenticateWithCompanyAPI(username, password);
-    } catch (error) {
+      await authenticateWithCompanyAPI(username, password);
+    } catch {
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }

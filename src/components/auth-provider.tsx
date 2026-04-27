@@ -1,4 +1,3 @@
-'use client'
 
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
@@ -9,15 +8,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isClient, setIsClient] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  useEffect(() => {
-    if (!isClient) return
 
     const checkAuth = async () => {
       const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
@@ -45,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     checkAuth()
-  }, [pathname, isClient, router])
+  }, [pathname, router])
 
   if (isLoading && !publicRoutes.some(route => pathname.startsWith(route))) {
     return (

@@ -22,26 +22,6 @@ export function resetDbConnection() {
   }
 }
 
-export type Person = {
-  id: number
-  name: string
-  email: string
-  created_at: Date
-}
-
-export type Invoice = {
-  id: number
-  invoice_num: string
-  price: number
-  person_id: number
-  created_at: Date
-}
-
-export type PersonWithInvoices = Person & {
-  invoices: Invoice[]
-  total: number
-}
-
 export type BannerStatus = 'live' | 'scheduled' | 'expired' | 'inactive'
 
 export type Banner = {
@@ -116,25 +96,4 @@ export function getBannerStatus(
   }
 
   return 'inactive'
-}
-
-export type Import = {
-  id: number
-  file_name: string
-  is_active: boolean
-  uploaded_at: Date
-}
-
-export type Row = {
-  id: number
-  import_id: number
-  data: Record<string, unknown>
-  created_at: Date
-  notification_status?: 'not_yet' | 'success' | 'failed'
-  notification_sent_at?: Date | null
-  notification_error?: string | null
-}
-
-export type RowWithImport = Row & {
-  file_name: string
 }

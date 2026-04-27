@@ -34,7 +34,7 @@ export function broadcastSync() {
     try {
       controller.enqueue(encoder.encode(message))
       clientCount++
-    } catch (error) {
+    } catch {
       controllers.delete(controller)
     }
   })

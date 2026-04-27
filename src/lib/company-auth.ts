@@ -5,7 +5,7 @@ const TOKEN_ENDPOINT = process.env.API_TOKEN_ENDPOINT;
 interface CompanyAuthResponse {
   token: string;
   expiresIn?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
