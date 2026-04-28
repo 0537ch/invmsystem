@@ -1,7 +1,12 @@
 import '@/lib/cron';
 
 type Controller = ReadableStreamDefaultController<Uint8Array>
-const controllers = new Map<string, Controller>()  // Changed to Map with IDs
+interface ExtendedController extends Controller {
+  _keepAlive?: ReturnType<typeof setInterval>
+  _clientId?: string
+}
+
+const controllers = new Map<string, Controller>()
 
 export async function GET() {
   const encoder = new TextEncoder()
@@ -10,7 +15,6 @@ export async function GET() {
   const stream = new ReadableStream({
     start(controller) {
       controllers.set(clientId, controller)
-      console.log(`🟢 SSE: Client ${clientId} connected (Total: ${controllers.size})`)
 
       // Send client ID
       controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'connected', clientId })}\n\n`))
@@ -19,23 +23,21 @@ export async function GET() {
       const keepAlive = setInterval(() => {
         try {
           controller.enqueue(encoder.encode(': keep-alive\n\n'))
-        } catch (error) {
+        } catch {
           clearInterval(keepAlive)
           controllers.delete(clientId)
-          console.log(`🔴 SSE: Client ${clientId} removed (keep-alive failed) (Total: ${controllers.size})`)
         }
       }, 15000)
 
       // Store interval for cleanup
-      ;(controller as any)._keepAlive = keepAlive
-      ;(controller as any)._clientId = clientId
+      const extController = controller as ExtendedController
+      extController._keepAlive = keepAlive
+      extController._clientId = clientId
     },
     cancel(controller) {
-      const interval = (controller as any)._keepAlive
-      const id = (controller as any)._clientId
-      if (interval) clearInterval(interval)
-      if (id) controllers.delete(id)
-      console.log(`🔴 SSE: Client ${id} disconnected via cancel() (Total: ${controllers.size})`)
+      const extController = controller as ExtendedController
+      if (extController._keepAlive) clearInterval(extController._keepAlive)
+      if (extController._clientId) controllers.delete(extController._clientId)
     }
   })
 
@@ -64,7 +66,6 @@ export async function DELETE(request: Request) {
       // Already closed
     }
     controllers.delete(clientId)
-    console.log(`🔴 SSE: Client ${clientId} disconnected via DELETE (Total: ${controllers.size})`)
     return Response.json({ success: true, message: 'Disconnected' })
   }
 
@@ -80,9 +81,8 @@ export function broadcastSync() {
     try {
       controller.enqueue(encoder.encode(message))
       clientCount++
-    } catch (error) {
+    } catch {
       controllers.delete(clientId)
-      console.log(`🔴 SSE: Client ${clientId} removed (enqueue failed) (Total: ${controllers.size})`)
     }
   })
 

@@ -3,6 +3,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Youtube, Image as ImageIcon, Video, HardDrive, Globe, FileText, Play } from 'lucide-react';
 import type { BannerItem, BannerItemType } from '../_hooks/use-banner-setting';
 
 interface BannerDetailDialogProps {
@@ -15,17 +16,17 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
   const getIconForType = (type: BannerItemType) => {
     switch (type) {
       case 'image':
-        return <span className="size-4">🖼️</span>;
+        return <ImageIcon className="size-4" />;
       case 'youtube':
-        return <span className="size-4">▶️</span>;
+        return <Youtube className="size-4" />;
       case 'video':
-        return <span className="size-4">🎬</span>;
+        return <Video className="size-4" />;
       case 'gdrive':
-        return <span className="size-4">💾</span>;
+        return <HardDrive className="size-4" />;
       case 'iframe':
-        return <span className="size-4">🌐</span>;
+        return <Globe className="size-4" />;
       case 'pdf':
-        return <span className="size-4">📄</span>;
+        return <FileText className="size-4" />;
     }
   };
 
@@ -63,14 +64,14 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
                 <img src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`} alt="YouTube thumbnail" className="max-w-full max-h-full object-cover" />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="bg-red-600 rounded-full p-3 shadow-lg">
-                    <span className="text-white text-2xl">▶️</span>
+                    <Play className="text-white" fill="white" size={24} />
                   </div>
                 </div>
                 <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">YouTube</div>
               </>
             ) : (
               <div className="text-center">
-                <span className="text-4xl">▶️</span>
+                <Youtube className="size-12 mx-auto" />
                 <span className="text-sm text-muted-foreground block mt-2">Invalid YouTube URL</span>
               </div>
             )}
@@ -81,7 +82,7 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
         return (
           <div className={previewClass}>
             <div className="text-center">
-              <span className="text-4xl">🎬</span>
+              <Video className="size-12 mx-auto" />
               <div className="text-sm font-medium mt-2">Video File</div>
               <div className="text-xs text-muted-foreground mt-1 truncate px-4">{item.url}</div>
             </div>
@@ -107,7 +108,7 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
         return (
           <div className={previewClass}>
             <div className="text-center">
-              <span className="text-4xl">💾</span>
+              <HardDrive className="size-12 mx-auto" />
               <div className="text-sm font-medium">Google Drive</div>
               <div className="text-xs text-muted-foreground mt-1">Invalid URL</div>
             </div>
@@ -120,7 +121,7 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
         return (
           <div className={previewClass}>
             <div className="text-center">
-              <span className="text-4xl">🌐</span>
+              <Globe className="size-12 mx-auto" />
               <div className="text-sm font-medium truncate px-4 mt-2">{hostname}</div>
               <div className="text-xs text-muted-foreground mt-1">Embedded website</div>
             </div>
