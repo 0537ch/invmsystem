@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getDb, getBannerStatus } from '@/lib/db'
 import { deleteUploadedFile, isUploadedFile } from '@/lib/file-delete'
-import type { Banner, Location } from '@/lib/db'
+import type { Banner, Location } from '@/types'
 
 export async function PUT(
   request: Request,

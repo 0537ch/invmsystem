@@ -1,4 +1,5 @@
 import postgres from 'postgres'
+import type { BannerStatus, Location } from '@/types'
 
 let sql: postgres.Sql<Record<string, never>> | null = null
 
@@ -20,41 +21,6 @@ export function resetDbConnection() {
     sql.end({ timeout: 5 })
     sql = null
   }
-}
-
-export type BannerStatus = 'live' | 'scheduled' | 'expired' | 'inactive'
-
-export type Banner = {
-  id: number
-  type: 'image' | 'youtube' | 'video' | 'iframe' | 'gdrive'
-  url: string
-  duration: number
-  title: string | null
-  description: string | null
-  active: boolean
-  image_source: 'url' | 'gdrive' | 'upload' | null
-  position: number
-  created_at: Date
-  updated_at: Date
-  start_date: string | Date | null
-  end_date: string | Date | null
-  locations?: Location[]
-  status?: BannerStatus
-}
-
-export type Location = {
-  id: number
-  name: string
-  slug: string
-  created_at: Date
-}
-
-export type User = {
-  id: number
-  username: string
-  name: string | null
-  active: boolean
-  created_at: Date
 }
 
 export function getBannerStatus(

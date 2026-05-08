@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getDb, getBannerStatus } from '@/lib/db'
-import type { Banner, Location } from '@/lib/db'
+import type { Banner, Location } from '@/types'
 
 export async function GET(
   request: Request,

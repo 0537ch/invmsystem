@@ -3,21 +3,39 @@ import '@/lib/cron';
 type Controller = ReadableStreamDefaultController<Uint8Array>
 interface ExtendedController extends Controller {
   _keepAlive?: ReturnType<typeof setInterval>
-  _clientId?: string
+  _deviceId?: string
 }
 
 const controllers = new Map<string, Controller>()
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const deviceId = searchParams.get('deviceId')
+
+  if (!deviceId) {
+    return Response.json({ error: 'deviceId required' }, { status: 400 })
+  }
+
   const encoder = new TextEncoder()
-  const clientId = crypto.randomUUID()
+
+  // IDEMPOTENCY: Close existing connection for this device if exists
+  const existingController = controllers.get(deviceId)
+  if (existingController) {
+    try {
+      const extExisting = existingController as ExtendedController
+      if (extExisting._keepAlive) clearInterval(extExisting._keepAlive)
+      existingController.close()
+    } catch {
+      // Already closed
+    }
+  }
 
   const stream = new ReadableStream({
     start(controller) {
-      controllers.set(clientId, controller)
+      controllers.set(deviceId, controller)
 
-      // Send client ID
-      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'connected', clientId })}\n\n`))
+      // Send connection confirmation
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'connected', deviceId })}\n\n`))
 
       // Keep-alive every 15s to detect dead connections
       const keepAlive = setInterval(() => {
@@ -25,19 +43,19 @@ export async function GET() {
           controller.enqueue(encoder.encode(': keep-alive\n\n'))
         } catch {
           clearInterval(keepAlive)
-          controllers.delete(clientId)
+          controllers.delete(deviceId)
         }
       }, 15000)
 
       // Store interval for cleanup
       const extController = controller as ExtendedController
       extController._keepAlive = keepAlive
-      extController._clientId = clientId
+      extController._deviceId = deviceId
     },
     cancel(controller) {
       const extController = controller as ExtendedController
       if (extController._keepAlive) clearInterval(extController._keepAlive)
-      if (extController._clientId) controllers.delete(extController._clientId)
+      if (extController._deviceId) controllers.delete(extController._deviceId)
     }
   })
 
@@ -52,24 +70,26 @@ export async function GET() {
 
 export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url)
-  const clientId = searchParams.get('clientId')
+  const deviceId = searchParams.get('deviceId')
 
-  if (!clientId) {
-    return Response.json({ error: 'clientId required' }, { status: 400 })
+  if (!deviceId) {
+    return Response.json({ error: 'deviceId required' }, { status: 400 })
   }
 
-  const controller = controllers.get(clientId)
+  const controller = controllers.get(deviceId)
   if (controller) {
     try {
+      const extController = controller as ExtendedController
+      if (extController._keepAlive) clearInterval(extController._keepAlive)
       controller.close()
-    } catch (e) {
+    } catch {
       // Already closed
     }
-    controllers.delete(clientId)
+    controllers.delete(deviceId)
     return Response.json({ success: true, message: 'Disconnected' })
   }
 
-  return Response.json({ error: 'Client not found' }, { status: 404 })
+  return Response.json({ error: 'Device not found' }, { status: 404 })
 }
 
 export function broadcastSync() {
@@ -77,12 +97,12 @@ export function broadcastSync() {
   const message = `data: ${JSON.stringify({ type: 'sync' })}\n\n`
 
   let clientCount = 0
-  controllers.forEach((controller, clientId) => {
+  controllers.forEach((controller, deviceId) => {
     try {
       controller.enqueue(encoder.encode(message))
       clientCount++
     } catch {
-      controllers.delete(clientId)
+      controllers.delete(deviceId)
     }
   })
 

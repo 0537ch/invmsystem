@@ -61,7 +61,7 @@ export function AppSidebar() {
           <MessageCircleWarning className="h-8 w-8"/>
           {!isCollapsed && (
             <span className="font-semibold text-foreground">
-              Manajemen Notifikasi
+              Manajemen Banner
             </span>
           )}
         </a>

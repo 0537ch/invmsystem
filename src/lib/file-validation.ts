@@ -1,4 +1,4 @@
-export const MAX_IMAGE_SIZE = 20 * 1024 * 1024; 
+export const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
 export const MAX_VIDEO_SIZE = 100 * 1024 * 1024;
 export const ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.avif'];
 export const ALLOWED_VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mov'];
@@ -8,19 +8,15 @@ const MAGIC_NUMBERS: Record<string, string[]> = {
   '.jpg': ['ffd8ff'],
   '.jpeg': ['ffd8ff'],
   '.png': ['89504e47'],
-  '.webp': ['52494646'], 
-  '.avif': ['000000186674797061766966'], 
-  '.mp4': [], 
-  '.webm': ['1a45dfa3'], 
-  '.mov': ['6d6f6f76'], 
+  '.webp': ['52494646'],
+  '.avif': ['000000186674797061766966'],
+  '.mp4': [],
+  '.webm': ['1a45dfa3'],
+  '.mov': ['6d6f6f76'],
 };
 
-export type FileType = 'image' | 'video';
-
-export interface ValidationResult {
-  valid: boolean;
-  error?: string;
-}
+export type { FileType, ValidationResult } from '@/types';
+import type { FileType, ValidationResult } from '@/types';
 
 export function getFileType(filename: string): FileType | null {
   const ext = getFileExtension(filename);

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { BannerItem } from '@/app/banner/_hooks/use-banner-setting';
+import type { BannerItem } from '@/types';
 
 interface YouTubePlayer {
   playVideo: () => void;

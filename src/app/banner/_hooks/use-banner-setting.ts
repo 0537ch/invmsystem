@@ -1,27 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
-import type { Location } from '@/lib/db';
-
-export type BannerItemType = 'image' | 'youtube' | 'video' | 'iframe' | 'gdrive' | 'pdf';
-export type ImageSourceType = 'url' | 'gdrive' | 'upload';
-export type ContentCategory = 'image' | 'youtube' | 'video' | 'html' | 'pdf';
-
-export interface BannerItem {
-  id: number;
-  type: BannerItemType;
-  url: string;
-  duration: number;
-  title?: string;
-  description?: string;
-  active?: boolean;
-  imageSource?: ImageSourceType;
-  position?: number;
-  start_date?: string | Date | null;
-  end_date?: string | Date | null;
-  locations?: Location[];
-  location_ids?: number[];
-  status?: 'live' | 'scheduled' | 'expired' | 'inactive';
-}
+import type { BannerItem, BannerItemType, ImageSourceType, ContentCategory, Location } from '@/types';
 
 export function useBannerSetting() {
   const [bannerItems, setBannerItems] = useState<BannerItem[]>([]);
@@ -39,6 +18,8 @@ export function useBannerSetting() {
   const [editHtmlFile, setEditHtmlFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedFilePath, setUploadedFilePath] = useState<string | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [editPendingFile, setEditPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
   const [newItem, setNewItem] = useState<Partial<BannerItem>>({
@@ -372,6 +353,100 @@ export function useBannerSetting() {
     }
   };
 
+  const handleUploadPending = async (): Promise<string | null> => {
+    if (!pendingFile) return null;
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', pendingFile);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Upload failed' }));
+        toast.error(errorData.error || 'Failed to upload file');
+        return null;
+      }
+
+      const data = await response.json();
+      const filePath = data.path;
+      setUploadedFilePath(filePath);
+      setPendingFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      toast.success('File uploaded successfully!');
+      return filePath;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast.error('Failed to upload file');
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleEditUploadPending = async (): Promise<string | null> => {
+    if (!editPendingFile) return null;
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', editPendingFile);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Upload failed' }));
+        toast.error(errorData.error || 'Failed to upload file');
+        return null;
+      }
+
+      const data = await response.json();
+      const filePath = data.path;
+      setUploadedFilePath(filePath);
+      setEditPendingFile(null);
+      if (editFileInputRef.current) {
+        editFileInputRef.current.value = '';
+      }
+      toast.success('File uploaded successfully!');
+      return filePath;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast.error('Failed to upload file');
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  const clearPendingFile = () => {
+    setPendingFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const clearEditPendingFile = () => {
+    setEditPendingFile(null);
+    if (editFileInputRef.current) {
+      editFileInputRef.current.value = '';
+    }
+  };
+
   const handleSyncDisplays = async () => {
     setIsSyncing(true);
     try {
@@ -447,5 +522,14 @@ export function useBannerSetting() {
     uploadedFilePath,
     setUploadedFilePath,
     handleUpload,
+    pendingFile,
+    setPendingFile,
+    editPendingFile,
+    setEditPendingFile,
+    handleUploadPending,
+    handleEditUploadPending,
+    formatFileSize,
+    clearPendingFile,
+    clearEditPendingFile,
   };
 }

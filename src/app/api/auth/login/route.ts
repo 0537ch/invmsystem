@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb, type User } from '@/lib/db';
+import { getDb } from '@/lib/db';
+import type { User } from '@/types';
 import { authenticateWithCompanyAPI } from '@/lib/company-auth';
 import { createToken } from '@/lib/jwt';
 

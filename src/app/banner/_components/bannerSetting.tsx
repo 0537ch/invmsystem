@@ -10,7 +10,8 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { BannerForm } from './BannerForm';
 import { BannerDetailDialog } from './BannerDetailDialog';
-import { useBannerSetting, type BannerItem, type BannerItemType } from '../_hooks/use-banner-setting';
+import { useBannerSetting } from '../_hooks/use-banner-setting';
+import type { BannerItem, BannerItemType } from '@/types';
 import { useState } from 'react';
 
 const BannerSetting = () => {
@@ -58,6 +59,15 @@ const BannerSetting = () => {
     isUploading,
     uploadedFilePath,
     handleUpload,
+    pendingFile,
+    setPendingFile,
+    editPendingFile,
+    setEditPendingFile,
+    handleUploadPending,
+    handleEditUploadPending,
+    formatFileSize,
+    clearPendingFile,
+    clearEditPendingFile,
   } = useBannerSetting();
 
   const getIconForType = (type: BannerItemType) => {
@@ -155,9 +165,13 @@ const BannerSetting = () => {
               onSubmit={handleAddItem}
               onCancel={() => setIsAddDialogOpen(false)}
               fileInputRef={fileInputRef}
-              onUpload={handleUpload}
+              onUploadPending={setPendingFile}
+              onUploadConfirmed={handleUploadPending}
+              onClearPending={clearPendingFile}
               isUploading={isUploading}
               uploadedFilePath={uploadedFilePath}
+              pendingFile={pendingFile}
+              formatFileSize={formatFileSize}
             />
           </DialogContent>
         </Dialog>
@@ -185,9 +199,13 @@ const BannerSetting = () => {
               onSubmit={handleSaveEdit}
               onCancel={() => setIsEditDialogOpen(false)}
               fileInputRef={editFileInputRef}
-              onUpload={handleUpload}
+              onUploadPending={setEditPendingFile}
+              onUploadConfirmed={handleEditUploadPending}
+              onClearPending={clearEditPendingFile}
               isUploading={isUploading}
               uploadedFilePath={uploadedFilePath}
+              pendingFile={editPendingFile}
+              formatFileSize={formatFileSize}
             />
           </DialogContent>
         </Dialog>

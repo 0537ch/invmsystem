@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { verifyToken, type JWTPayload } from '@/lib/jwt';
+import { verifyToken } from '@/lib/jwt';
+import type { TokenPayload } from '@/types';
 import { cookies } from 'next/headers';
 
 export async function GET() {
@@ -10,7 +11,7 @@ export async function GET() {
     return NextResponse.json({ user: null }, { status: 401 });
   }
 
-  const payload = verifyToken(token) as JWTPayload | null;
+  const payload = verifyToken(token) as TokenPayload | null;
 
   if (!payload) {
     return NextResponse.json({ user: null }, { status: 401 });

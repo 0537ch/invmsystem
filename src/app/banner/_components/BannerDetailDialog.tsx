@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Youtube, Image as ImageIcon, Video, HardDrive, Globe, FileText, Play } from 'lucide-react';
-import type { BannerItem, BannerItemType } from '../_hooks/use-banner-setting';
+import type { BannerItem, BannerItemType } from '@/types';
 
 interface BannerDetailDialogProps {
   open: boolean;

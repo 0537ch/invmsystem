@@ -11,11 +11,10 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Upload, AlertTriangle } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
-import type { BannerItem, ContentCategory, ImageSourceType } from '../_hooks/use-banner-setting';
+import type { BannerItem, ContentCategory, ImageSourceType, Location } from '@/types';
 import { DatePickerWithRange } from './datepicker';
 import { type DateRange } from 'react-day-picker';
 import { useEffect, useState, useRef } from 'react';
-import type { Location } from '@/lib/db';
 
 interface BannerFormProps {
   mode: 'add' | 'edit';
@@ -31,9 +30,13 @@ interface BannerFormProps {
   onSubmit: () => void;
   onCancel: () => void;
   fileInputRef?: React.RefObject<HTMLInputElement | null>;
-  onUpload?: (file: File) => Promise<string | null>;
+  onUploadPending?: (file: File) => void;
+  onUploadConfirmed?: () => Promise<string | null>;
+  onClearPending?: () => void;
   isUploading?: boolean;
   uploadedFilePath?: string | null;
+  pendingFile?: File | null;
+  formatFileSize?: (bytes: number) => string;
 }
 
 export function BannerForm({
@@ -50,9 +53,13 @@ export function BannerForm({
   onSubmit,
   onCancel,
   fileInputRef,
-  onUpload,
+  onUploadPending,
+  onUploadConfirmed,
+  onClearPending,
   isUploading = false,
   uploadedFilePath = null,
+  pendingFile = null,
+  formatFileSize,
 }: BannerFormProps) {
   const [locations, setLocations] = useState<Location[]>([]);
   const uploadInputRef = useRef<HTMLInputElement>(null);
@@ -117,19 +124,25 @@ export function BannerForm({
     });
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!onUpload) return;
-
-    const filePath = await onUpload(file);
-    if (filePath) {
-      onDataChange({ ...data, url: filePath });
+    if (onUploadPending) {
+      onUploadPending(file);
     }
 
     if (uploadInputRef.current) {
       uploadInputRef.current.value = '';
+    }
+  };
+
+  const handleUploadConfirm = async () => {
+    if (!onUploadConfirmed || !pendingFile) return;
+
+    const filePath = await onUploadConfirmed();
+    if (filePath) {
+      onDataChange({ ...data, url: filePath });
     }
   };
 
@@ -303,7 +316,36 @@ export function BannerForm({
                   className="hidden"
                   onChange={handleFileSelect}
                 />
-                {uploadedFilePath && data.url === uploadedFilePath && (
+                {pendingFile && (
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium truncate">{pendingFile.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatFileSize ? formatFileSize(pendingFile.size) : `${(pendingFile.size / 1024 / 1024).toFixed(1)} MB`}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Button
+                        size="sm"
+                        onClick={handleUploadConfirm}
+                        disabled={isUploading}
+                      >
+                        {isUploading ? 'Mengunggah...' : 'Upload'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={onClearPending}
+                        disabled={isUploading}
+                      >
+                        Batal
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                {uploadedFilePath && data.url === uploadedFilePath && !pendingFile && (
                   <p className="text-xs text-muted-foreground">
                     Uploaded: {uploadedFilePath}
                   </p>
@@ -369,7 +411,36 @@ export function BannerForm({
                   className="hidden"
                   onChange={handleFileSelect}
                 />
-                {uploadedFilePath && data.url === uploadedFilePath && (
+                {pendingFile && (
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium truncate">{pendingFile.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatFileSize ? formatFileSize(pendingFile.size) : `${(pendingFile.size / 1024 / 1024).toFixed(1)} MB`}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Button
+                        size="sm"
+                        onClick={handleUploadConfirm}
+                        disabled={isUploading}
+                      >
+                        {isUploading ? 'Mengunggah...' : 'Upload'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={onClearPending}
+                        disabled={isUploading}
+                      >
+                        Batal
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                {uploadedFilePath && data.url === uploadedFilePath && !pendingFile && (
                   <p className="text-xs text-muted-foreground">
                     Uploaded: {uploadedFilePath}
                   </p>

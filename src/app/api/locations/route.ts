@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getDb } from '@/lib/db'
-import type { Location } from '@/lib/db'
+import type { Location } from '@/types'
 
 export async function GET() {
   try {
