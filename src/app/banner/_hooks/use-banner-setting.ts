@@ -73,12 +73,12 @@ export function useBannerSetting() {
 
     if (def.hasEventEntries) {
       if (eventEntries.length === 0) {
-        alert('Silakan tambahkan minimal 1 event');
+        toast.error('Silakan tambahkan minimal 1 event');
         return;
       }
-      const hasEmpty = eventEntries.some(e => !e.name || !e.pictureUrl);
+      const hasEmpty = eventEntries.some(e => !e.name);
       if (hasEmpty) {
-        alert('Semua event harus memiliki nama dan gambar');
+        toast.error('Semua event harus memiliki nama');
         return;
       }
     } else if (def.requiresUrl && !newItem.url) {
@@ -202,12 +202,12 @@ export function useBannerSetting() {
 
     if (def.hasEventEntries) {
       if (editEventEntries.length === 0) {
-        alert('Silakan tambahkan minimal 1 event');
+        toast.error('Silakan tambahkan minimal 1 event');
         return;
       }
-      const hasEmpty = editEventEntries.some(e => !e.name || !e.pictureUrl);
+      const hasEmpty = editEventEntries.some(e => !e.name);
       if (hasEmpty) {
-        alert('Semua event harus memiliki nama dan gambar');
+        toast.error('Semua event harus memiliki nama');
         return;
       }
     } else if (def.requiresUrl && !editingItem.url) {

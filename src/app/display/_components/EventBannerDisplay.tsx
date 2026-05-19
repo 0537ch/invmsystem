@@ -17,11 +17,17 @@ export const EventBannerDisplay = ({ entries, currentIndex }: EventBannerDisplay
       </ul>
     </div>
     <div className="w-1/2 h-full">
-      <img
-        src={entries[currentIndex]?.pictureUrl}
-        alt="event"
-        className="w-full h-full object-contain"
-      />
+      {entries[currentIndex]?.pictureUrl ? (
+        <img
+          src={entries[currentIndex].pictureUrl}
+          alt="event"
+          className="w-full h-full object-contain"
+        />
+      ) : (
+        <div className="flex items-center justify-center h-full">
+          <span className="text-muted-foreground">No Image</span>
+        </div>
+      )}
     </div>
   </div>
 );
