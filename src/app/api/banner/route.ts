@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getDb, getBannerStatus } from '@/lib/db'
-import type { Banner, Location } from '@/types'
+import type { Banner, Location, BannerEventEntry } from '@/types'
 
 export async function GET() {
   try {
@@ -41,9 +41,20 @@ export async function GET() {
           WHERE bl.banner_id = ${banner.id}
           ORDER BY l.name ASC
         `
+        let eventEntries: BannerEventEntry[] = []
+        if (banner.type === 'event') {
+          const events = await sql<BannerEventEntry[]>`
+            SELECT id, name, picture_url as "pictureUrl", position, duration
+            FROM banner_events
+            WHERE banner_id = ${banner.id}
+            ORDER BY position ASC
+          `
+          eventEntries = events
+        }
         return {
           ...banner,
           locations,
+          eventEntries,
           status: getBannerStatus(banner.active, banner.start_date, banner.end_date),
         }
       })
@@ -74,7 +85,8 @@ export async function POST(request: Request) {
       image_source = null,
       start_date = null,
       end_date = null,
-      location_ids = []
+      location_ids = [],
+      eventEntries = []
     } = body
 
     const formatDate = (date: string | Date | null): string | null => {
@@ -95,7 +107,7 @@ export async function POST(request: Request) {
     const startDate = formatDate(start_date);
     const endDate = formatDate(end_date);
 
-    if (!type || !url) {
+    if (!type || (type !== 'event' && !url)) {
       return NextResponse.json(
         { error: 'Missing required fields: type and url' },
         { status: 400 }
@@ -143,6 +155,15 @@ export async function POST(request: Request) {
       await sql`INSERT INTO banner_locations (banner_id, location_id) VALUES ${sql(values)}`
     }
 
+    if (type === 'event' && Array.isArray(eventEntries) && eventEntries.length > 0) {
+      for (const entry of eventEntries) {
+        await sql`
+          INSERT INTO banner_events (banner_id, name, picture_url, position, duration)
+          VALUES (${banner.id}, ${entry.name}, ${entry.pictureUrl}, ${entry.position ?? 0}, ${entry.duration ?? null})
+        `
+      }
+    }
+
     const locations = await sql<Location[]>`
       SELECT l.*
       FROM locations l
@@ -151,11 +172,23 @@ export async function POST(request: Request) {
       ORDER BY l.name ASC
     `
 
+    let returnedEventEntries: BannerEventEntry[] = []
+    if (type === 'event') {
+      const events = await sql<BannerEventEntry[]>`
+        SELECT id, name, picture_url as "pictureUrl", position, duration
+        FROM banner_events
+        WHERE banner_id = ${banner.id}
+        ORDER BY position ASC
+      `
+      returnedEventEntries = events
+    }
+
     return NextResponse.json(
       {
         banner: {
           ...banner,
           locations,
+          eventEntries: returnedEventEntries,
           status: getBannerStatus(banner.active, banner.start_date, banner.end_date),
         },
         wasAutoDisabled,

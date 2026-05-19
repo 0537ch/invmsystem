@@ -21,6 +21,16 @@ let youtubeAPILoaded = false;
 let youtubeAPILoading = false;
 const youtubeAPICallbacks: Array<() => void> = [];
 
+const getDeviceId = (): string => {
+  const key = 'banner_device_id';
+  let id = typeof window !== 'undefined' ? localStorage.getItem(key) : null;
+  if (!id) {
+    id = crypto.randomUUID();
+    if (typeof window !== 'undefined') localStorage.setItem(key, id);
+  }
+  return id;
+};
+
 export const loadYouTubeAPI = (): Promise<void> => {
   return new Promise((resolve) => {
     if (youtubeAPILoaded) {
@@ -49,12 +59,13 @@ export const loadYouTubeAPI = (): Promise<void> => {
 };
 
 export function useLocationBannerDisplay(locationSlug: string) {
-  const [banners, setBanners] = useState<BannerItem[]>([]);
+  const [slides, setSlides] = useState<BannerItem[]>([]);
   const [location, setLocation] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [notFound, setNotFound] = useState(false);
   const [sseInitialized, setSseInitialized] = useState(false);
+  const [bannerCount, setBannerCount] = useState(0);
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
@@ -62,12 +73,29 @@ export function useLocationBannerDisplay(locationSlug: string) {
   const isFetchingRef = useRef(false);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttemptsRef = useRef(0);
-  const MAX_RECONNECT_DELAY = 30000; // 30 seconds max delay
+  const MAX_RECONNECT_DELAY = 30000;
+
+  const expandBanners = (banners: BannerItem[]) => {
+    const result: BannerItem[] = [];
+    for (const banner of banners) {
+      if (banner.type === 'event' && banner.eventEntries?.length) {
+        for (const entry of banner.eventEntries) {
+          result.push({
+            ...banner,
+            url: entry.pictureUrl,
+            eventEntryId: entry.id,
+            duration: entry.duration ?? banner.duration ?? 10,
+          });
+        }
+      } else {
+        result.push(banner);
+      }
+    }
+    return result;
+  };
 
   const fetchBanners = useCallback(async () => {
-    if (isFetchingRef.current || !locationSlug) {
-      return;
-    }
+    if (isFetchingRef.current || !locationSlug) return;
 
     isFetchingRef.current = true;
 
@@ -77,31 +105,30 @@ export function useLocationBannerDisplay(locationSlug: string) {
 
       if (response.status === 404) {
         setNotFound(true);
-        setBanners([]);
+        setSlides([]);
         setLocation(null);
         return;
       }
 
       if (response.ok) {
         setLocation(data.location);
-        const activeBanners = (data.banners || [])
-          .filter((b: BannerItem) => b && b.id && b.type && b.url);
-
-        setBanners(activeBanners);
+        const activeBanners = (data.banners || []).filter(
+          (b: BannerItem) => b && b.id && b.type && (b.url || b.type === 'event')
+        );
+        const expanded = expandBanners(activeBanners);
+        setSlides(expanded);
+        setBannerCount(activeBanners.length);
 
         setCurrentIndex((prev) => {
-          if (activeBanners.length === 0) return 0;
-          if (prev >= activeBanners.length) return activeBanners.length - 1;
-          return prev;
+          if (expanded.length === 0) return 0;
+          return prev >= expanded.length ? expanded.length - 1 : prev;
         });
 
-        if (!sseInitialized) {
-          setSseInitialized(true);
-        }
+        if (!sseInitialized) setSseInitialized(true);
       }
     } catch (error) {
       console.error('Error fetching banners:', error);
-      setBanners([]);
+      setSlides([]);
       setLocation(null);
       setCurrentIndex(0);
     } finally {
@@ -111,107 +138,55 @@ export function useLocationBannerDisplay(locationSlug: string) {
   }, [locationSlug, sseInitialized]);
 
   const connectToSSE = useCallback(() => {
-    if (!locationSlug || locationSlug === '' || !sseInitialized) {
-      return;
-    }
+    if (!locationSlug || !sseInitialized) return;
 
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-    }
+    if (eventSourceRef.current) eventSourceRef.current.close();
 
-    const eventSource = new EventSource('/api/banner/events');
+    const eventSource = new EventSource(`/api/banner/events?deviceId=${getDeviceId()}`);
     eventSourceRef.current = eventSource;
 
-    eventSource.onopen = () => {
-      reconnectAttemptsRef.current = 0;
-    };
+    eventSource.onopen = () => { reconnectAttemptsRef.current = 0; };
 
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        if (data.type === 'sync') {
-          fetchBannersRef.current?.();
-        }
-      } catch (error) {
-        console.error('Error parsing SSE message:', error);
-      }
+        if (data.type === 'sync') fetchBannersRef.current?.();
+      } catch { /* ignore */ }
     };
 
     eventSource.onerror = () => {
       eventSource.close();
-
       const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), MAX_RECONNECT_DELAY);
       reconnectAttemptsRef.current++;
-
-      reconnectTimeoutRef.current = setTimeout(() => {
-        connectToSSE();
-      }, delay);
+      reconnectTimeoutRef.current = setTimeout(connectToSSE, delay);
     };
   }, [locationSlug, sseInitialized]);
 
-  useEffect(() => {
-    fetchBannersRef.current = fetchBanners;
-  }, [fetchBanners]);
-
-  useEffect(() => {
-    connectToSSE();
-
-    return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-      }
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
-    };
-  }, [connectToSSE]);
-
-  useEffect(() => {
-    fetchBanners();
-  }, [fetchBanners]);
+  useEffect(() => { fetchBannersRef.current = fetchBanners; }, [fetchBanners]);
+  useEffect(() => { connectToSSE(); return () => { eventSourceRef.current?.close(); clearTimeout(reconnectTimeoutRef.current || undefined); }; }, [connectToSSE]);
+  useEffect(() => { fetchBanners(); }, [fetchBanners]);
 
   const goToNextSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % banners.length);
-  }, [banners.length]);
+    setCurrentIndex((prev) => (prev + 1) % slides.length);
+  }, [slides.length]);
 
   useEffect(() => {
-    if (banners.length === 0) return;
+    if (slides.length === 0) return;
 
-    const currentBanner = banners[currentIndex];
+    const currentSlide = slides[currentIndex];
+    if (!currentSlide) return;
 
-    if (!currentBanner || !currentBanner.type) {
-      return;
-    }
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
 
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
+    if (currentSlide.type === 'youtube' || currentSlide.type === 'video') return;
 
-    if (currentBanner.type === 'youtube' || currentBanner.type === 'video') {
-      return;
-    }
-
-    const duration = currentBanner.duration ?? 10;
+    const duration = currentSlide.duration ?? 10;
     if (duration <= 0) return;
 
-    timerRef.current = setTimeout(() => {
-      goToNextSlide();
-    }, duration * 1000);
+    timerRef.current = setTimeout(goToNextSlide, duration * 1000);
 
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, [currentIndex, banners, goToNextSlide]);
+    return () => { clearTimeout(timerRef.current || undefined); };
+  }, [currentIndex, slides, goToNextSlide]);
 
-  return {
-    banners,
-    location,
-    loading,
-    notFound,
-    currentIndex,
-    goToNextSlide,
-  };
+  return { slides, location, loading, notFound, currentIndex, bannerCount, goToNextSlide };
 }

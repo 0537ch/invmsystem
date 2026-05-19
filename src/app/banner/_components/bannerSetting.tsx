@@ -1,6 +1,6 @@
 "use client";
 
-import { Youtube, Globe, Image as ImageIcon, HardDrive, Trash2, Pencil, Plus, Video, RefreshCw, Eye } from 'lucide-react';
+import { Youtube, Globe, Image as ImageIcon, HardDrive, Trash2, Pencil, Plus, Video, RefreshCw, Eye, Calendar } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -68,6 +68,10 @@ const BannerSetting = () => {
     formatFileSize,
     clearPendingFile,
     clearEditPendingFile,
+    eventEntries,
+    setEventEntries,
+    editEventEntries,
+    setEditEventEntries,
   } = useBannerSetting();
 
   const getIconForType = (type: BannerItemType) => {
@@ -82,6 +86,8 @@ const BannerSetting = () => {
         return <HardDrive className="size-4" />;
       case 'iframe':
         return <Globe className="size-4" />;
+      case 'event':
+        return <Calendar className="size-4" />;
       // case 'pdf':
       //   return <FileText className="size-4" />;
     }
@@ -172,6 +178,9 @@ const BannerSetting = () => {
               uploadedFilePath={uploadedFilePath}
               pendingFile={pendingFile}
               formatFileSize={formatFileSize}
+              eventEntries={eventEntries}
+              onEventEntriesChange={setEventEntries}
+              onEventUpload={handleUpload}
             />
           </DialogContent>
         </Dialog>
@@ -206,6 +215,9 @@ const BannerSetting = () => {
               uploadedFilePath={uploadedFilePath}
               pendingFile={editPendingFile}
               formatFileSize={formatFileSize}
+              eventEntries={editEventEntries}
+              onEventEntriesChange={setEditEventEntries}
+              onEventUpload={handleUpload}
             />
           </DialogContent>
         </Dialog>

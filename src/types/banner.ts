@@ -2,9 +2,18 @@
 export type BannerStatus = 'live' | 'scheduled' | 'expired' | 'inactive'
 
 // Banner Types
-export type BannerItemType = 'image' | 'youtube' | 'video' | 'iframe' | 'gdrive' | 'pdf'
+export type BannerItemType = 'image' | 'youtube' | 'video' | 'iframe' | 'gdrive' | 'pdf' | 'event'
 export type ImageSourceType = 'url' | 'gdrive' | 'upload'
-export type ContentCategory = 'image' | 'youtube' | 'video' | 'html' | 'pdf'
+export type ContentCategory = 'image' | 'youtube' | 'video' | 'html' | 'pdf' | 'event'
+
+// Banner Event Entry
+export interface BannerEventEntry {
+  id?: number
+  name: string
+  pictureUrl: string
+  position: number
+  duration?: number
+}
 
 // Database Banner (from db.ts)
 export type Banner = {
@@ -37,6 +46,8 @@ export type Location = {
 export interface BannerItem extends Omit<Banner, 'image_source'> {
   imageSource?: ImageSourceType
   location_ids?: number[]
+  eventEntries?: BannerEventEntry[]
+  eventEntryId?: number
 }
 
 // Banner Form Props
@@ -68,4 +79,56 @@ export interface BannerDetailDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   item: BannerItem | null
+}
+
+// Content Category Schema — single source of truth for banner type behavior
+export interface ContentCategoryDef {
+  itemType: BannerItemType | ((imageSource: ImageSourceType) => BannerItemType)
+  requiresUrl: boolean
+  hasEventEntries: boolean
+  label: string
+}
+
+export const CONTENT_CATEGORY_SCHEMA: Record<ContentCategory, ContentCategoryDef> = {
+  image: {
+    itemType: (src) => (src === 'gdrive' ? 'gdrive' : 'image'),
+    requiresUrl: true,
+    hasEventEntries: false,
+    label: 'Image',
+  },
+  youtube: {
+    itemType: 'youtube',
+    requiresUrl: true,
+    hasEventEntries: false,
+    label: 'YouTube',
+  },
+  video: {
+    itemType: 'video',
+    requiresUrl: true,
+    hasEventEntries: false,
+    label: 'Video',
+  },
+  html: {
+    itemType: 'iframe',
+    requiresUrl: true,
+    hasEventEntries: false,
+    label: 'HTML/Iframe',
+  },
+  event: {
+    itemType: 'event',
+    requiresUrl: false,
+    hasEventEntries: true,
+    label: 'Event',
+  },
+  pdf: {
+    itemType: 'pdf',
+    requiresUrl: true,
+    hasEventEntries: false,
+    label: 'PDF',
+  },
+}
+
+export function resolveItemType(category: ContentCategory, imageSource: ImageSourceType): BannerItemType {
+  const def = CONTENT_CATEGORY_SCHEMA[category]
+  return typeof def.itemType === 'function' ? def.itemType(imageSource) : def.itemType
 }

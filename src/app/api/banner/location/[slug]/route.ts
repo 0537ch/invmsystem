@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getDb, getBannerStatus } from '@/lib/db'
-import type { Banner, Location } from '@/types'
+import type { Banner, Location, BannerEventEntry } from '@/types'
 
 export async function GET(
   request: Request,
@@ -62,9 +62,20 @@ export async function GET(
           WHERE bl.banner_id = ${banner.id}
           ORDER BY l.name ASC
         `
+        let eventEntries: BannerEventEntry[] = []
+        if (banner.type === 'event') {
+          const events = await sql<BannerEventEntry[]>`
+            SELECT id, name, picture_url as "pictureUrl", position, duration
+            FROM banner_events
+            WHERE banner_id = ${banner.id}
+            ORDER BY position ASC
+          `
+          eventEntries = events
+        }
         return {
           ...banner,
           locations,
+          eventEntries,
           status: getBannerStatus(banner.active, banner.start_date, banner.end_date),
         }
       })

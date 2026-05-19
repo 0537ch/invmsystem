@@ -3,7 +3,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Youtube, Image as ImageIcon, Video, HardDrive, Globe, FileText, Play } from 'lucide-react';
+import { Youtube, Image as ImageIcon, Video, HardDrive, Globe, FileText, Play, Calendar } from 'lucide-react';
 import type { BannerItem, BannerItemType } from '@/types';
 
 interface BannerDetailDialogProps {
@@ -25,6 +25,8 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
         return <HardDrive className="size-4" />;
       case 'iframe':
         return <Globe className="size-4" />;
+      case 'event':
+        return <Calendar className="size-4" />;
       case 'pdf':
         return <FileText className="size-4" />;
     }
@@ -42,21 +44,22 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
 
   const renderPreview = () => {
     if (!item) return null;
+    const it = item;
 
     const previewClass = "w-full h-48 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted/50 overflow-hidden relative";
 
-    switch (item.type) {
+    switch (it.type) {
       case 'image':
         return (
           <div className={previewClass}>
-            <img src={item.url} alt="Preview" className="max-w-full max-h-full object-contain" onError={(e) => {
+            <img src={it.url} alt="Preview" className="max-w-full max-h-full object-contain" onError={(e) => {
               (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-size="12"%3EFailed to load%3C/text%3E%3C/svg%3E';
             }} />
             <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">Image</div>
           </div>
         );
       case 'youtube': {
-        const videoId = item.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([^/?&]+)/)?.[1];
+        const videoId = it.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([^/?&]+)/)?.[1];
         return (
           <div className={previewClass}>
             {videoId ? (
@@ -84,13 +87,13 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
             <div className="text-center">
               <Video className="size-12 mx-auto" />
               <div className="text-sm font-medium mt-2">Video File</div>
-              <div className="text-xs text-muted-foreground mt-1 truncate px-4">{item.url}</div>
+              <div className="text-xs text-muted-foreground mt-1 truncate px-4">{it.url}</div>
             </div>
             <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">Video</div>
           </div>
         );
       case 'gdrive': {
-        const fileId = item.url.match(/\/d\/([^/]+)/)?.[1] || item.url.match(/id=([^/&]+)/)?.[1];
+        const fileId = it.url.match(/\/d\/([^/]+)/)?.[1] || it.url.match(/id=([^/&]+)/)?.[1];
         if (fileId) {
           const previewUrl = `https://drive.google.com/file/d/${fileId}/preview`;
           return (
@@ -117,7 +120,7 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
         );
       }
       case 'iframe': {
-        const hostname = item.url ? new URL(item.url).hostname.replace('www.', '') : 'HTML Content';
+        const hostname = it.url ? new URL(it.url).hostname.replace('www.', '') : 'HTML Content';
         return (
           <div className={previewClass}>
             <div className="text-center">
@@ -129,35 +132,44 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
           </div>
         );
       }
-      /*
-      case 'pdf': {
-        // Check if it's a Google Drive URL and convert it to preview format
-        const fileIdMatch = item.url.match(/\/d\/([^/]+)/);
-        const idMatch = item.url.match(/id=([^/&]+)/);
-        const fileId = fileIdMatch?.[1] || idMatch?.[1];
-
-        let pdfUrl: string;
-        if (fileId) {
-          // Google Drive PDF - use preview URL
-          pdfUrl = `https://drive.google.com/file/d/${fileId}/preview?embedded=true`;
-        } else {
-          // Direct PDF URL - use as is
-          pdfUrl = item.url;
+      case 'event': {
+        if (!it.eventEntries || it.eventEntries.length === 0) {
+          return (
+            <div className={previewClass}>
+              <div className="text-center">
+                <Calendar className="size-12 mx-auto" />
+                <div className="text-sm font-medium mt-2">Event Banner</div>
+                <div className="text-xs text-muted-foreground mt-1">No entries</div>
+              </div>
+              <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">Event</div>
+            </div>
+          );
         }
-
         return (
-          <div className={previewClass + " p-0 bg-background"}>
-            <iframe
-              src={pdfUrl}
-              title="PDF preview"
-              className="w-full h-full border-0"
-              sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"
-            />
-            <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded z-10">PDF</div>
+          <div className={previewClass}>
+            <div className="w-full h-full flex">
+              <div className="w-1/2 h-full overflow-y-auto bg-black/50 p-3">
+                <ul className="space-y-1">
+                  {it.eventEntries.slice(0, 5).map((entry) => (
+                    <li key={entry.id} className="text-white text-xs font-medium truncate">{entry.name}</li>
+                  ))}
+                  {it.eventEntries.length > 5 && (
+                    <li className="text-white/50 text-xs">+{it.eventEntries.length - 5} more</li>
+                  )}
+                </ul>
+              </div>
+              <div className="w-1/2 h-full">
+                <img
+                  src={it.eventEntries[0]?.pictureUrl}
+                  alt="event"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+            </div>
+            <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">Event</div>
           </div>
         );
       }
-      */
     }
   };
 
@@ -242,6 +254,28 @@ export function BannerDetailDialog({ open, onOpenChange, item }: BannerDetailDia
                   <Badge key={location.id} variant="secondary">
                     {location.name}
                   </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Event Entries */}
+          {item.type === 'event' && item.eventEntries && item.eventEntries.length > 0 && (
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Event Entries ({item.eventEntries.length})</label>
+              <div className="mt-2 space-y-2">
+                {item.eventEntries.map((entry, idx) => (
+                  <div key={entry.id ?? idx} className="flex items-center gap-3 bg-muted/50 rounded-lg p-2">
+                    <div className="w-12 h-12 rounded border-2 border-dashed flex items-center justify-center overflow-hidden shrink-0">
+                      <img src={entry.pictureUrl} alt={entry.name} className="max-w-full max-h-full object-contain" onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{entry.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{entry.pictureUrl}</p>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getDb, getBannerStatus } from '@/lib/db'
 import { deleteUploadedFile, isUploadedFile } from '@/lib/file-delete'
-import type { Banner, Location } from '@/types'
+import type { Banner, Location, BannerEventEntry } from '@/types'
 
 export async function PUT(
   request: Request,
@@ -24,7 +24,8 @@ export async function PUT(
       position = undefined,
       start_date = null,
       end_date = null,
-      location_ids = undefined
+      location_ids = undefined,
+      eventEntries = undefined
     } = body
 
     const formatDate = (date: string | Date | null): string | null => {
@@ -45,7 +46,7 @@ export async function PUT(
     const startDate = formatDate(start_date);
     const endDate = formatDate(end_date);
 
-    if (!type || !url) {
+    if (!type || (type !== 'event' && !url)) {
       return NextResponse.json(
         { error: 'Missing required fields: type and url' },
         { status: 400 }
@@ -153,6 +154,20 @@ export async function PUT(
       }
     }
 
+    if (type === 'event' && eventEntries !== undefined) {
+      await sql`DELETE FROM banner_events WHERE banner_id = ${id}`
+      if (Array.isArray(eventEntries)) {
+        for (const entry of eventEntries) {
+          await sql`
+            INSERT INTO banner_events (banner_id, name, picture_url, position, duration)
+            VALUES (${id}, ${entry.name}, ${entry.pictureUrl}, ${entry.position ?? 0}, ${entry.duration ?? null})
+          `
+        }
+      }
+    } else if (type !== 'event') {
+      await sql`DELETE FROM banner_events WHERE banner_id = ${id}`
+    }
+
     const locations = await sql<Location[]>`
       SELECT l.*
       FROM locations l
@@ -161,10 +176,22 @@ export async function PUT(
       ORDER BY l.name ASC
     `
 
+    let returnedEventEntries: BannerEventEntry[] = []
+    if (type === 'event') {
+      const events = await sql<BannerEventEntry[]>`
+        SELECT id, name, picture_url as "pictureUrl", position, duration
+        FROM banner_events
+        WHERE banner_id = ${id}
+        ORDER BY position ASC
+      `
+      returnedEventEntries = events
+    }
+
     return NextResponse.json({
       banner: {
         ...banner,
         locations,
+        eventEntries: returnedEventEntries,
         status: getBannerStatus(banner.active, banner.start_date, banner.end_date),
       },
       wasAutoDisabled,

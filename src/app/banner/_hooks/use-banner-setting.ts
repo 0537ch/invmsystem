@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
-import type { BannerItem, BannerItemType, ImageSourceType, ContentCategory, Location } from '@/types';
+import type { BannerItem, ImageSourceType, ContentCategory, Location, BannerEventEntry } from '@/types';
+import { CONTENT_CATEGORY_SCHEMA, resolveItemType } from '@/types/banner';
 
 export function useBannerSetting() {
   const [bannerItems, setBannerItems] = useState<BannerItem[]>([]);
@@ -40,6 +41,8 @@ export function useBannerSetting() {
     description: '',
   });
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [eventEntries, setEventEntries] = useState<BannerEventEntry[]>([]);
+  const [editEventEntries, setEditEventEntries] = useState<BannerEventEntry[]>([]);
 
   const fetchBanners = async () => {
     try {
@@ -60,36 +63,36 @@ export function useBannerSetting() {
   }, []);
 
   const handleAddItem = async () => {
+    const def = CONTENT_CATEGORY_SCHEMA[contentCategory];
+
+    // Validation
     if (contentCategory === 'html' && !htmlFile && !newItem.url) {
       alert('Silakan pilih file HTML atau masukkan URL');
       return;
     }
 
-    if (contentCategory !== 'html' && !newItem.url) {
+    if (def.hasEventEntries) {
+      if (eventEntries.length === 0) {
+        alert('Silakan tambahkan minimal 1 event');
+        return;
+      }
+      const hasEmpty = eventEntries.some(e => !e.name || !e.pictureUrl);
+      if (hasEmpty) {
+        alert('Semua event harus memiliki nama dan gambar');
+        return;
+      }
+    } else if (def.requiresUrl && !newItem.url) {
       alert('Silakan masukkan URL');
       return;
     }
 
-    let itemType: BannerItemType;
-    const finalUrl = newItem.url!;
-
-    if (contentCategory === 'youtube') {
-      itemType = 'youtube';
-    } else if (contentCategory === 'video') {
-      itemType = 'video';
-    } else if (contentCategory === 'html') {
-      itemType = 'iframe';
-      if (htmlFile) {
-        alert('HTML file upload not implemented yet. Please use URL.');
-        return;
-      }
-    } else {
-      if (imageSource === 'gdrive') {
-        itemType = 'gdrive';
-      } else {
-        itemType = 'image';
-      }
+    if (contentCategory === 'html' && htmlFile) {
+      alert('HTML file upload not implemented yet. Please use URL.');
+      return;
     }
+
+    const itemType = resolveItemType(contentCategory, imageSource);
+    const finalUrl = def.requiresUrl ? newItem.url! : '';
 
     setIsAdding(true);
     try {
@@ -100,12 +103,13 @@ export function useBannerSetting() {
           type: itemType,
           url: finalUrl,
           duration: (contentCategory === 'youtube' || contentCategory === 'video') ? 0 : (newItem.duration || 10),
-          title: newItem.title || `${contentCategory}${contentCategory === 'image' && imageSource ? ` (${imageSource})` : ''}` || null,
+          title: newItem.title || `${contentCategory}${contentCategory === 'image' ? ` (${imageSource})` : ''}` || null,
           description: newItem.description || null,
           image_source: contentCategory === 'image' ? imageSource : null,
           start_date: newItem.start_date || null,
           end_date: newItem.end_date || null,
-          location_ids: newItem.location_ids || []
+          location_ids: newItem.location_ids || [],
+          ...(def.hasEventEntries ? { eventEntries } : {})
         }),
       });
 
@@ -122,6 +126,7 @@ export function useBannerSetting() {
         setContentCategory('image');
         setImageSource('url');
         setHtmlFile(null);
+        setEventEntries([]);
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
@@ -169,6 +174,9 @@ export function useBannerSetting() {
       setEditContentCategory('video');
     } else if (item.type === 'iframe') {
       setEditContentCategory('html');
+    } else if (item.type === 'event') {
+      setEditContentCategory('event');
+      setEditEventEntries(item.eventEntries || []);
     } else {
       setEditContentCategory('image');
       if (item.type === 'gdrive') {
@@ -184,36 +192,36 @@ export function useBannerSetting() {
   };
 
   const handleSaveEdit = async () => {
+    const def = CONTENT_CATEGORY_SCHEMA[editContentCategory];
+
+    // Validation
     if (editContentCategory === 'html' && !editHtmlFile && !editingItem.url) {
       alert('Silakan pilih file HTML atau masukkan URL');
       return;
     }
 
-    if (editContentCategory !== 'html' && !editingItem.url) {
+    if (def.hasEventEntries) {
+      if (editEventEntries.length === 0) {
+        alert('Silakan tambahkan minimal 1 event');
+        return;
+      }
+      const hasEmpty = editEventEntries.some(e => !e.name || !e.pictureUrl);
+      if (hasEmpty) {
+        alert('Semua event harus memiliki nama dan gambar');
+        return;
+      }
+    } else if (def.requiresUrl && !editingItem.url) {
       alert('Silakan masukkan URL');
       return;
     }
 
-    let itemType: BannerItemType;
-    const finalUrl = editingItem.url!;
-
-    if (editContentCategory === 'youtube') {
-      itemType = 'youtube';
-    } else if (editContentCategory === 'video') {
-      itemType = 'video';
-    } else if (editContentCategory === 'html') {
-      itemType = 'iframe';
-      if (editHtmlFile) {
-        alert('HTML file upload not implemented yet. Please use URL.');
-        return;
-      }
-    } else {
-      if (editImageSource === 'gdrive') {
-        itemType = 'gdrive';
-      } else {
-        itemType = 'image';
-      }
+    if (editContentCategory === 'html' && editHtmlFile) {
+      alert('HTML file upload not implemented yet. Please use URL.');
+      return;
     }
+
+    const itemType = resolveItemType(editContentCategory, editImageSource);
+    const finalUrl = def.requiresUrl ? editingItem.url! : '';
 
     const item = bannerItems[editingIndex!];
     const currentPosition = editingIndex!;
@@ -227,13 +235,14 @@ export function useBannerSetting() {
           type: itemType,
           url: finalUrl,
           duration: (editContentCategory === 'youtube' || editContentCategory === 'video') ? 0 : (editingItem.duration || 10),
-          title: editingItem.title || `${editContentCategory}${editContentCategory === 'image' && editImageSource ? ` (${editImageSource})` : ''}` || null,
+          title: editingItem.title || `${editContentCategory}${editContentCategory === 'image' ? ` (${editImageSource})` : ''}` || null,
           description: editingItem.description || null,
           image_source: editContentCategory === 'image' ? editImageSource : null,
           position: currentPosition,
           start_date: editingItem.start_date || null,
           end_date: editingItem.end_date || null,
-          location_ids: editingItem.location_ids
+          location_ids: editingItem.location_ids,
+          ...(def.hasEventEntries ? { eventEntries: editEventEntries } : {})
         }),
       });
 
@@ -249,6 +258,7 @@ export function useBannerSetting() {
         setIsEditDialogOpen(false);
         setEditingIndex(null);
         setEditHtmlFile(null);
+        setEditEventEntries([]);
         if (editFileInputRef.current) {
           editFileInputRef.current.value = '';
         }
@@ -531,5 +541,9 @@ export function useBannerSetting() {
     formatFileSize,
     clearPendingFile,
     clearEditPendingFile,
+    eventEntries,
+    setEventEntries,
+    editEventEntries,
+    setEditEventEntries,
   };
 }

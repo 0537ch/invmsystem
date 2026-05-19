@@ -11,8 +11,9 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Upload, AlertTriangle } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
-import type { BannerItem, ContentCategory, ImageSourceType, Location } from '@/types';
+import type { BannerItem, BannerEventEntry, ContentCategory, ImageSourceType, Location } from '@/types';
 import { DatePickerWithRange } from './datepicker';
+import { EventEntriesInput } from './EventEntriesInput';
 import { type DateRange } from 'react-day-picker';
 import { useEffect, useState, useRef } from 'react';
 
@@ -37,6 +38,9 @@ interface BannerFormProps {
   uploadedFilePath?: string | null;
   pendingFile?: File | null;
   formatFileSize?: (bytes: number) => string;
+  eventEntries?: BannerEventEntry[];
+  onEventEntriesChange?: (entries: BannerEventEntry[]) => void;
+  onEventUpload?: (file: File) => Promise<string | null>;
 }
 
 export function BannerForm({
@@ -60,6 +64,9 @@ export function BannerForm({
   uploadedFilePath = null,
   pendingFile = null,
   formatFileSize,
+  eventEntries = [],
+  onEventEntriesChange,
+  onEventUpload,
 }: BannerFormProps) {
   const [locations, setLocations] = useState<Location[]>([]);
   const uploadInputRef = useRef<HTMLInputElement>(null);
@@ -183,6 +190,7 @@ export function BannerForm({
             <SelectItem value="youtube">YouTube</SelectItem>
             <SelectItem value="video">Video File (MP4, WebM)</SelectItem>
             <SelectItem value="html">HTML / Website</SelectItem>
+            <SelectItem value="event">Event</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -360,104 +368,33 @@ export function BannerForm({
           </>
         ) : category === 'video' ? (
           <>
-            <Label htmlFor="video-url">Sumber Video</Label>
-            <div className="flex gap-4 mb-3">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="video-source"
-                  id="video-source-url"
-                  checked={inputSource === 'url'}
-                  onChange={() => handleSourceChange('url')}
-                  className="cursor-pointer"
-                />
-                <span className="text-sm">URL</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="video-source"
-                  id="video-source-upload"
-                  checked={inputSource === 'upload'}
-                  onChange={() => handleSourceChange('upload')}
-                  className="cursor-pointer"
-                />
-                <span className="text-sm">Upload File</span>
-              </label>
-            </div>
-            {inputSource === 'url' ? (
-              <Input
-                id="video-url"
-                placeholder="https://example.com/video.mp4"
-                value={data.url?.startsWith('/uploads/') ? '' : (data.url || '')}
-                onChange={(e) => onDataChange({ ...data, url: e.target.value })}
+            <Label htmlFor="video-url">URL Video</Label>
+            <Input
+              id="video-url"
+              placeholder="https://example.com/video.mp4"
+              value={data.url || ''}
+              onChange={(e) => onDataChange({ ...data, url: e.target.value })}
+            />
+            <p className="text-xs text-muted-foreground">Tempel URL file video</p>
+          </>
+        ) : category === 'event' ? (
+          <>
+            <Label>Daftar Event</Label>
+            {onEventEntriesChange && onEventUpload && (
+              <EventEntriesInput
+                entries={eventEntries}
+                onChange={onEventEntriesChange}
+                onUpload={onEventUpload}
               />
-            ) : (
-              <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => uploadInputRef.current?.click()}
-                  disabled={isUploading}
-                >
-                  <Upload className="size-4 mr-2" />
-                  {isUploading ? 'Mengunggah...' : 'Pilih File Video'}
-                </Button>
-                <input
-                  ref={uploadInputRef}
-                  type="file"
-                  accept="video/mp4,video/webm,video/quicktime"
-                  className="hidden"
-                  onChange={handleFileSelect}
-                />
-                {pendingFile && (
-                  <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium truncate">{pendingFile.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {formatFileSize ? formatFileSize(pendingFile.size) : `${(pendingFile.size / 1024 / 1024).toFixed(1)} MB`}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Button
-                        size="sm"
-                        onClick={handleUploadConfirm}
-                        disabled={isUploading}
-                      >
-                        {isUploading ? 'Mengunggah...' : 'Upload'}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={onClearPending}
-                        disabled={isUploading}
-                      >
-                        Batal
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                {uploadedFilePath && data.url === uploadedFilePath && !pendingFile && (
-                  <p className="text-xs text-muted-foreground">
-                    Uploaded: {uploadedFilePath}
-                  </p>
-                )}
-              </>
             )}
             <p className="text-xs text-muted-foreground">
-              {inputSource === 'url'
-                ? 'Tempel URL file video'
-                : 'Upload file video (max 100MB)'}
+              Tambahkan event dengan nama dan gambar. Gambar akan ditampilkan bergilir.
             </p>
           </>
         ) : (
           <>
             <Label htmlFor="youtube-url">
-              {category === 'youtube' ? 'URL YouTube' :
-               'URL'}
+              {category === 'youtube' ? 'URL YouTube' : 'URL'}
             </Label>
             <Input
               id="youtube-url"
@@ -475,7 +412,7 @@ export function BannerForm({
         )}
       </div>
 
-      {category !== 'youtube' && category !== 'video' && (
+      {category !== 'youtube' && category !== 'video' && category !== 'event' && (
         <div className="space-y-2">
           <Label htmlFor="banner-duration">Durasi (detik)</Label>
           <Input
