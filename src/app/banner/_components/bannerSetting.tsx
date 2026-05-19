@@ -1,6 +1,6 @@
 "use client";
 
-import { Youtube, Globe, Image as ImageIcon, HardDrive, Trash2, Pencil, Plus, Video, RefreshCw, Eye, Calendar } from 'lucide-react';
+import { Youtube, Globe, Image as ImageIcon, HardDrive, Trash2, Pencil, Plus, Video, RefreshCw, Eye, Calendar, Search, X } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -72,6 +72,14 @@ const BannerSetting = () => {
     setEventEntries,
     editEventEntries,
     setEditEventEntries,
+    searchQuery,
+    setSearchQuery,
+    filterLocation,
+    setFilterLocation,
+    filterStatus,
+    setFilterStatus,
+    locations,
+    filteredBannerItems,
   } = useBannerSetting();
 
   const getIconForType = (type: BannerItemType) => {
@@ -137,266 +145,86 @@ const BannerSetting = () => {
 
   return (
     <div className="container mx-auto p-4 sm:p-6 h-full">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Banner Setting</h1>
-        </div>
-        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="flex-1 sm:flex-none">
-                <Plus className="size-4 mr-2" />
-                <span className="hidden sm:inline">Tambah Konten</span>
-                <span className="sm:hidden">Tambah</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto max-w-[95vw] sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Tambah Konten Banner</DialogTitle>
-              <DialogDescription>
-                Tambah item baru ke rotasi tampilan banner
-              </DialogDescription>
-            </DialogHeader>
-            <BannerForm
-              mode="add"
-              data={newItem}
-              category={contentCategory}
-              imageSource={imageSource}
-              htmlFile={htmlFile}
-              isLoading={isAdding}
-              onDataChange={setNewItem}
-              onCategoryChange={setContentCategory}
-              onImageSourceChange={setImageSource}
-              onHtmlFileChange={setHtmlFile}
-              onSubmit={handleAddItem}
-              onCancel={() => setIsAddDialogOpen(false)}
-              fileInputRef={fileInputRef}
-              onUploadPending={setPendingFile}
-              onUploadConfirmed={handleUploadPending}
-              onClearPending={clearPendingFile}
-              isUploading={isUploading}
-              uploadedFilePath={uploadedFilePath}
-              pendingFile={pendingFile}
-              formatFileSize={formatFileSize}
-              eventEntries={eventEntries}
-              onEventEntriesChange={setEventEntries}
-              onEventUpload={handleUpload}
-            />
-          </DialogContent>
-        </Dialog>
-
-        {/* Edit Dialog */}
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="max-h-[90vh] overflow-y-auto max-w-[95vw] sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Edit Konten Banner</DialogTitle>
-              <DialogDescription>
-                Edit item banner yang dipilih
-              </DialogDescription>
-            </DialogHeader>
-            <BannerForm
-              mode="edit"
-              data={editingItem}
-              category={editContentCategory}
-              imageSource={editImageSource}
-              htmlFile={editHtmlFile}
-              isLoading={isSaving}
-              onDataChange={setEditingItem}
-              onCategoryChange={setEditContentCategory}
-              onImageSourceChange={setEditImageSource}
-              onHtmlFileChange={setEditHtmlFile}
-              onSubmit={handleSaveEdit}
-              onCancel={() => setIsEditDialogOpen(false)}
-              fileInputRef={editFileInputRef}
-              onUploadPending={setEditPendingFile}
-              onUploadConfirmed={handleEditUploadPending}
-              onClearPending={clearEditPendingFile}
-              isUploading={isUploading}
-              uploadedFilePath={uploadedFilePath}
-              pendingFile={editPendingFile}
-              formatFileSize={formatFileSize}
-              eventEntries={editEventEntries}
-              onEventEntriesChange={setEditEventEntries}
-              onEventUpload={handleUpload}
-            />
-          </DialogContent>
-        </Dialog>
-
-        <Button onClick={handleSyncDisplays} disabled={isSyncing} variant="outline" className="flex-1 sm:flex-none">
-          {isSyncing ? (
-            <Spinner className="mr-2" />
-          ) : (
-            <RefreshCw className="size-4 mr-2" />
+      
+      {/* Filter Bar */}
+      <div className="flex flex-wrap gap-3 items-center border-b pb-4 mb-4">
+        {/* Search */}
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            placeholder="Cari judul atau tipe..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 pr-8"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 size-6 flex items-center justify-center rounded hover:bg-muted"
+              aria-label="Clear search"
+            >
+              <X className="size-3 text-muted-foreground" />
+            </button>
           )}
-          <span className="hidden sm:inline">Sync Display</span>
-          <span className="sm:hidden">Sync</span>
-        </Button>
-      </div>
+        </div>
+
+        {/* Location Filter */}
+        <select
+          value={filterLocation}
+          onChange={(e) => setFilterLocation(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+          className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+        >
+          <option value="all">Semua Lokasi</option>
+          {locations.map((loc) => (
+            <option key={loc.id} value={loc.id}>{loc.name}</option>
+          ))}
+        </select>
+
+        {/* Status Filter */}
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+        >
+          <option value="all">Semua Status</option>
+          <option value="live">Live</option>
+          <option value="scheduled">Scheduled</option>
+          <option value="expired">Expired</option>
+          <option value="inactive">Inactive</option>
+        </select>
+
+        {/* Result count */}
+        <span className="text-sm text-muted-foreground">
+          {filteredBannerItems.length} dari {bannerItems.length}
+        </span>
       </div>
 
-      {bannerItems.length === 0 ? (
+      {filteredBannerItems.length === 0 ? (
         <div className="text-center py-20 border-2 border-dashed rounded-lg px-4">
-          <p className="text-muted-foreground text-lg mb-2">Belum ada item banner</p>
-          <p className="text-muted-foreground text-sm">Klik Tambah Konten untuk memulai</p>
+          <p className="text-muted-foreground text-lg mb-2">Tidak ada banner yang cocok</p>
+          <p className="text-muted-foreground text-sm">Coba ubah filter atau kata kunci pencarian</p>
         </div>
       ) : (
         <>
-          {/* Mobile Card View */}
-          <div className="md:hidden space-y-3">
-            {bannerItems.map((item, index) => (
-              <div key={item.id} className="border rounded-lg p-3 space-y-2">
-                {/* Header: Title + Actions */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant={getStatusInfo(item.status).variant}>{getStatusInfo(item.status).label}</Badge>
-                      <span className="font-medium truncate">{item.title || item.type}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="size-8 sm:size-9 min-h-[44px] min-w-[44px] sm:min-h-0"
-                      onClick={() => handleViewDetails(item)}
-                      title="Lihat Detail"
-                      aria-label={`Lihat detail untuk ${item.title || item.type}`}
-                    >
-                      <Eye className="size-3" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="size-8 sm:size-9 min-h-[44px] min-w-[44px] sm:min-h-0"
-                      onClick={() => handleEditItem(index)}
-                      title="Edit"
-                      aria-label={`Edit ${item.title || item.type}`}
-                    >
-                      <Pencil className="size-3" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="size-8 sm:size-9 min-h-[44px] min-w-[44px] sm:min-h-0"
-                      onClick={() => handleDeleteItem(item.id)}
-                      disabled={isDeleting === item.id}
-                      title="Hapus"
-                      aria-label={`Hapus ${item.title || item.type}`}
-                    >
-                      {isDeleting === item.id ? (
-                        <Spinner className="size-3 text-destructive" />
-                      ) : (
-                        <Trash2 className="size-3 text-destructive" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Preview */}
-                <div className="w-full h-24 rounded border-2 border-dashed flex items-center justify-center bg-muted/50 overflow-hidden relative">
-                  {item.type === 'image' ? (
-                    <img src={item.url} alt="Preview" className="max-w-full max-h-full object-contain" onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }} />
-                  ) : (
-                    <div className="text-center">
-                      <div className="scale-150">{getIconForType(item.type)}</div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Footer: Position + Duration + Active */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-3 text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">Pos:</span>
-                      <div className="relative">
-                        <Input
-                          key={`${item.id}-${index}`}
-                          type="number"
-                          min={1}
-                          max={bannerItems.length}
-                          defaultValue={index + 1}
-                          className="w-14 h-7 text-center text-xs"
-                          disabled={isUpdatingPosition === item.id}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              const input = e.target as HTMLInputElement;
-                              const newPosition = parseInt(input.value);
-                              if (!isNaN(newPosition)) {
-                                handlePositionChange(item, newPosition);
-                              }
-                            }
-                          }}
-                          onBlur={(e) => {
-                            const newPosition = parseInt(e.target.value);
-                            if (!isNaN(newPosition) && newPosition !== index + 1) {
-                              handlePositionChange(item, newPosition);
-                            } else {
-                              e.target.value = String(index + 1);
-                            }
-                          }}
-                        />
-                        {isUpdatingPosition === item.id && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-background/50">
-                            <Spinner className="size-3" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {item.type !== 'youtube' && item.type !== 'video' && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground">Durasi:</span>
-                        <span>{item.duration}s</span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">Aktif:</span>
-                      <Switch
-                        checked={item.active !== false}
-                        onCheckedChange={() => handleToggleActive(item)}
-                        disabled={isToggling === item.id}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Dates */}
-                  <div className="text-xs bg-muted/50 p-2 rounded space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Mulai:</span>
-                      <span>{formatDate(item.start_date)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Selesai:</span>
-                      <span>{formatDate(item.end_date)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
           {/* Desktop Table View */}
-          <div className="hidden md:block rounded-md border overflow-x-auto">
+          <div className="rounded-xl border border-slate-200/60 bg-card text-card-foreground shadow-md overflow-hidden max-h-[calc(100vh-280px)] overflow-y-auto">
             <table className="w-full caption-bottom text-sm whitespace-nowrap">
-              <thead className="[&_tr]:border-b">
-                <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                  <th className="h-10 px-2 text-left align-middle font-medium w-16">Posisi</th>
-                  <th className="h-10 px-2 text-left align-middle font-medium w-20">Preview</th>
-                  <th className="h-10 px-2 text-left align-middle font-medium w-20">Judul</th>
-                  <th className="h-10 px-2 text-left align-middle font-medium w-16">Durasi</th>
-                  <th className="h-10 px-2 text-left align-middle font-medium w-40">Tanggal Tayang</th>
-                  <th className="h-10 px-2 text-left align-middle font-medium w-16">Aktif</th>
-                  <th className="h-10 px-2 text-left align-middle font-medium w-32">Aksi</th>
+              <thead className="bg-slate-100/70 border-b border-slate-200/80">
+                <tr>
+                  <th className="h-12 px-4 text-left align-middle font-semibold text-xs uppercase tracking-wider text-muted-foreground">Posisi</th>
+                  <th className="h-12 px-4 text-left align-middle font-semibold text-xs uppercase tracking-wider text-muted-foreground">Preview</th>
+                  <th className="h-12 px-4 text-left align-middle font-semibold text-xs uppercase tracking-wider text-muted-foreground">Judul</th>
+                  <th className="h-12 px-4 text-left align-middle font-semibold text-xs uppercase tracking-wider text-muted-foreground">Durasi</th>
+                  <th className="h-12 px-4 text-left align-middle font-semibold text-xs uppercase tracking-wider text-muted-foreground">Tanggal Tayang</th>
+                  <th className="h-12 px-4 text-left align-middle font-semibold text-xs uppercase tracking-wider text-muted-foreground">Aktif</th>
+                  <th className="h-12 px-4 text-left align-middle font-semibold text-xs uppercase tracking-wider text-muted-foreground">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="[&_tr:last-child]:border-0">
-                {bannerItems.map((item, index) => (
-                  <tr key={item.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+              <tbody>
+                {filteredBannerItems.map((item, index) => (
+                  <tr key={item.id} className="border-b border-slate-200/80 transition-colors hover:bg-slate-50/80 hover:border-l-2 hover:border-l-slate-400">
                     {/* Position */}
-                    <td className="p-2 align-middle">
+                    <td className="p-4 align-middle">
                       <div className="relative">
                         <Input
                           key={`${item.id}-${index}`}
@@ -404,7 +232,7 @@ const BannerSetting = () => {
                           min={1}
                           max={bannerItems.length}
                           defaultValue={index + 1}
-                          className="w-16 h-8 text-center"
+                          className="w-16 h-8 text-center border-muted-foreground/20"
                           disabled={isUpdatingPosition === item.id}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
@@ -433,18 +261,18 @@ const BannerSetting = () => {
                     </td>
 
                     {/* Preview */}
-                    <td className="p-2 align-middle">
-                      <div className="w-32 h-20 rounded border-2 border-dashed flex items-center justify-center bg-muted/50 overflow-hidden relative">
+                    <td className="p-4 align-middle">
+                      <div className="w-32 h-20 rounded-lg border-2 border-dashed bg-muted/50 flex items-center justify-center overflow-hidden">
                         {item.type === 'image' ? (
                           <img src={item.url} alt="Preview" className="max-w-full max-h-full object-contain" onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none';
                           }} />
                         ) : item.type === 'youtube' ? (
-                          <div className="text-center">
+                          <div className="text-center text-muted-foreground">
                             {getIconForType(item.type)}
                           </div>
                         ) : (
-                          <div className="text-center">
+                          <div className="text-center text-muted-foreground">
                             {getIconForType(item.type)}
                           </div>
                         )}
@@ -452,7 +280,7 @@ const BannerSetting = () => {
                     </td>
 
                     {/* Title */}
-                    <td className="p-2 align-middle">
+                    <td className="p-4 align-middle">
                       <div className="flex items-center gap-2">
                         <Badge variant={getStatusInfo(item.status).variant}>{getStatusInfo(item.status).label}</Badge>
                         <span className="font-medium">{item.title || item.type}</span>
@@ -460,23 +288,23 @@ const BannerSetting = () => {
                     </td>
 
                     {/* Duration */}
-                    <td className="p-2 align-middle">
+                    <td className="p-4 align-middle">
                       {item.type !== 'youtube' && item.type !== 'video' ? (
-                        <span className="text-xs">{item.duration}s</span>
+                        <span className="text-sm text-muted-foreground">{item.duration}s</span>
                       ) : (
-                        <span className="text-xs text-muted-foreground">-</span>
+                        <span className="text-sm text-muted-foreground">-</span>
                       )}
                     </td>
 
                     {/* Tanggal Tayang */}
-                    <td className="p-2 align-middle">
-                      <span className="text-xs">
+                    <td className="p-4 align-middle">
+                      <span className="text-sm text-muted-foreground">
                         {formatDate(item.start_date)} - {formatDate(item.end_date)}
                       </span>
                     </td>
 
                     {/* Active */}
-                    <td className="p-2 align-middle">
+                    <td className="p-4 align-middle">
                       <Switch
                         checked={item.active !== false}
                         onCheckedChange={() => handleToggleActive(item)}
@@ -485,41 +313,41 @@ const BannerSetting = () => {
                     </td>
 
                     {/* Actions */}
-                    <td className="p-2 align-middle">
+                    <td className="p-4 align-middle">
                       <div className="flex items-center gap-1">
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="size-8 sm:size-9 min-h-[44px] min-w-[44px] sm:min-h-0"
+                          className="size-8 hover:bg-slate-100/50"
                           onClick={() => handleViewDetails(item)}
                           title="View Details"
                           aria-label={`View details for ${item.title || item.type}`}
                         >
-                          <Eye className="size-3" />
+                          <Eye className="size-4" />
                         </Button>
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="size-8 sm:size-9 min-h-[44px] min-w-[44px] sm:min-h-0"
-                          onClick={() => handleEditItem(index)}
+                          className="size-8 hover:bg-slate-100/50"
+                          onClick={() => handleEditItem(bannerItems.findIndex(b => b.id === item.id))}
                           title="Edit"
                           aria-label={`Edit ${item.title || item.type}`}
                         >
-                          <Pencil className="size-3" />
+                          <Pencil className="size-4" />
                         </Button>
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="size-8 sm:size-9 min-h-[44px] min-w-[44px] sm:min-h-0"
+                          className="size-8 hover:bg-slate-100/50"
                           onClick={() => handleDeleteItem(item.id)}
                           disabled={isDeleting === item.id}
                           title="Delete"
                           aria-label={`Delete ${item.title || item.type}`}
                         >
                           {isDeleting === item.id ? (
-                            <Spinner className="size-3 text-destructive" />
+                            <Spinner className="size-4 text-destructive" />
                           ) : (
-                            <Trash2 className="size-3 text-destructive" />
+                            <Trash2 className="size-4 text-destructive" />
                           )}
                         </Button>
                       </div>

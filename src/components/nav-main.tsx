@@ -113,11 +113,11 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
                   href={route.link}
                   prefetch={true}
                   className={cn(
-                    "flex items-center rounded-lg px-2 transition-colors",
+                    "flex items-center rounded-lg px-2 py-2 transition-colors border-l-2 border-transparent hover:bg-slate-100/70 hover:border-l-slate-400",
                     isActive
-                      ? "bg-primary text-primary-foreground font-semibold shadow-sm"
-                      : "text-muted-foreground hover:bg-sidebar-muted hover:text-foreground focus-visible:bg-sidebar-muted focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring outline-none",
-                    isCollapsed && "justify-center"
+                      ? "bg-slate-100/70 text-foreground border-l-slate-500 font-semibold"
+                      : "text-muted-foreground hover:text-foreground",
+                    isCollapsed && "justify-center border-l-0"
                   )}
                 >
                   {route.icon}

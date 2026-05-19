@@ -113,17 +113,17 @@ export default function LocationsPage() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 md:hidden">
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b border-slate-200/60 bg-slate-50/40 px-4">
           <SidebarTrigger className="-ml-1" />
           <div className="flex-1">
-            <h1 className="font-semibold">Locations</h1>
+            <h1 className="text-sm font-semibold text-foreground">Manajemen Lokasi</h1>
           </div>
         </header>
         <div className="container mx-auto p-4 sm:p-6">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-200/60">
             <div>
-              <h1 className="text-3xl font-bold">Locations</h1>
-              <p className="text-muted-foreground">Manage display locations</p>
+              <h1 className="text-2xl font-bold">Lokasi</h1>
+              <p className="text-sm text-muted-foreground">Kelola lokasi tampilan</p>
             </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
@@ -185,117 +185,60 @@ export default function LocationsPage() {
         </div>
       ) : (
         <>
-          {/* Mobile Card View */}
-          <div className="md:hidden space-y-3">
-            {locations.map((location) => (
-              <div key={location.id} className="border rounded-lg p-4 space-y-3">
-                {/* Header: Name + Actions */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{location.name}</h3>
-                    <p className="font-mono text-xs text-muted-foreground">{location.slug}</p>
-                  </div>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="size-8 flex-shrink-0"
-                    onClick={() => handleDeleteLocation(location.id)}
-                    title="Delete"
-                    aria-label={`Delete location: ${location.name}`}
-                  >
-                    <Trash2 className="size-4 text-destructive" />
-                  </Button>
-                </div>
-
-                {/* URL Link */}
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Display URL:</p>
-                  <a
-                    href={`/display/${location.slug}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-mono text-xs text-primary hover:underline break-all"
-                  >
-                    /display/{location.slug}
-                  </a>
-                </div>
-
-                {/* Banners */}
-                <div>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    Banners ({location.banners?.length || 0}):
-                  </p>
-                  {location.banners && location.banners.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {location.banners.map((banner) => (
-                        <div
-                          key={banner.id}
-                          className="text-xs bg-muted px-2 py-1 rounded flex items-center gap-1"
-                        >
-                          <span>{banner.title || banner.type}</span>
-                          <span className="text-muted-foreground">#{banner.id}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground italic">Tidak ada banner</p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-
           {/* Desktop Table View */}
-          <div className="hidden lg:block rounded-md border overflow-x-auto">
-            <table className="w-full min-w-[600px] caption-bottom text-sm">
-              <thead className="[&_tr]:border-b">
-                <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                  <th className="h-10 px-4 text-left align-middle font-medium">Nama</th>
-                  <th className="h-10 px-4 text-left align-middle font-medium">Slug</th>
-                  <th className="h-10 px-4 text-left align-middle font-medium">URL</th>
-                  <th className="h-10 px-4 text-left align-middle font-medium">Banner</th>
-                  <th className="h-10 px-4 text-left align-middle font-medium w-24">Aksi</th>
+          <div className="hidden lg:block rounded-xl border border-slate-200/60 bg-card text-card-foreground shadow-md overflow-hidden">
+            <table className="w-full min-w-[600px] caption-bottom text-sm whitespace-nowrap">
+              <thead className="bg-slate-100/70 border-b border-slate-200/80">
+                <tr>
+                  <th className="h-12 px-4 text-left align-middle font-semibold text-xs uppercase tracking-wider text-muted-foreground">Nama</th>
+                  <th className="h-12 px-4 text-left align-middle font-semibold text-xs uppercase tracking-wider text-muted-foreground">Slug</th>
+                  <th className="h-12 px-4 text-left align-middle font-semibold text-xs uppercase tracking-wider text-muted-foreground">URL</th>
+                  <th className="h-12 px-4 text-left align-middle font-semibold text-xs uppercase tracking-wider text-muted-foreground">Banner</th>
+                  <th className="h-12 px-4 text-left align-middle font-semibold text-xs uppercase tracking-wider text-muted-foreground w-24">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="[&_tr:last-child]:border-0">
+              <tbody>
                 {locations.map((location) => (
-                  <tr key={location.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                  <tr key={location.id} className="border-b border-slate-200/80 transition-colors hover:bg-slate-50/80 hover:border-l-2 hover:border-l-slate-400">
                     <td className="p-4 align-middle font-medium">{location.name}</td>
-                    <td className="p-4 align-middle font-mono text-xs text-muted-foreground">{location.slug}</td>
+                    <td className="p-4 align-middle font-mono text-sm text-muted-foreground">{location.slug}</td>
                     <td className="p-4 align-middle">
                       <a
                         href={`/display/${location.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-mono text-xs text-primary hover:underline"
+                        className="inline-flex items-center gap-1.5 font-mono text-sm text-blue-600 hover:text-blue-700 hover:underline"
                       >
                         /display/{location.slug}
+                        <svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
                       </a>
                     </td>
                     <td className="p-4 align-middle">
                       {location.banners && location.banners.length > 0 ? (
                         <div className="flex flex-col gap-1">
                           {location.banners.map((banner) => (
-                            <div key={banner.id} className="text-xs flex items-center gap-2">
+                            <div key={banner.id} className="text-sm flex items-center gap-2">
                               <span className="font-medium">{banner.title || banner.type}</span>
-                              <span className="text-muted-foreground">({banner.id})</span>
+                              <span className="text-muted-foreground">#{banner.id}</span>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <span className="text-xs text-muted-foreground">Tidak ada banner</span>
+                        <span className="text-sm text-muted-foreground">Tidak ada banner</span>
                       )}
                     </td>
                     <td className="p-4 align-middle">
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="size-8 sm:size-9 min-h-[44px] min-w-[44px] sm:min-h-0"
+                        className="size-8 hover:bg-slate-100/50"
                         onClick={() => handleDeleteLocation(location.id)}
                         title="Delete"
                         aria-label={`Delete location: ${location.name}`}
                       >
-                        <Trash2 className="size-3 text-destructive" />
+                        <Trash2 className="size-4 text-destructive" />
                       </Button>
                     </td>
                   </tr>

@@ -18,6 +18,7 @@ export const EventBannerDisplay = ({ entries, currentIndex }: EventBannerDisplay
     </div>
     <div className="w-1/2 h-full">
       {entries[currentIndex]?.pictureUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={entries[currentIndex].pictureUrl}
           alt="event"

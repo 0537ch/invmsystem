@@ -5,6 +5,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarSeparator,
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
@@ -74,14 +75,13 @@ export function AppSidebar() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
-        >
-          <SidebarTrigger />
-        </motion.div>
+        />
       </SidebarHeader>
+      <SidebarSeparator className="ms-0 me-auto w-[calc(100%-1rem)]" />
       <SidebarContent className="gap-4 px-2 py-4">
         <DashboardNavigation routes={dashboardRoutes} />
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t border-slate-200/60">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             {!isCollapsed ? (

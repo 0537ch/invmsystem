@@ -156,7 +156,7 @@ export function BannerForm({
   return (
     <div className="space-y-4 py-4">
       <div className="space-y-2">
-        <Label htmlFor="banner-title">Judul (opsional)</Label>
+        <Label htmlFor="banner-title">Judul </Label>
         <Input
           id="banner-title"
           placeholder="Item Banner Saya"
@@ -166,7 +166,7 @@ export function BannerForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="banner-description" className="text-sm sm:text-base">Deskripsi (opsional)</Label>
+        <Label htmlFor="banner-description" className="text-sm sm:text-base">Deskripsi</Label>
         <textarea
           id="banner-description"
           placeholder="Deskripsi singkat tentang banner ini..."
@@ -177,7 +177,7 @@ export function BannerForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="banner-type" className="text-sm sm:text-base">Tipe Konten</Label>
+        <Label htmlFor="banner-type" className="text-sm sm:text-base">Tipe Konten*</Label>
         <Select
           value={category}
           onValueChange={onCategoryChange}
@@ -362,7 +362,7 @@ export function BannerForm({
             )}
             <p className="text-xs text-muted-foreground">
               {inputSource === 'url'
-                ? 'Tempel URL gambar langsung'
+                ? 'URL gambar'
                 : 'Upload file gambar (max 20MB)'}
             </p>
           </>
@@ -414,7 +414,7 @@ export function BannerForm({
 
       {category !== 'youtube' && category !== 'video' && category !== 'event' && (
         <div className="space-y-2">
-          <Label htmlFor="banner-duration">Durasi (detik)</Label>
+          <Label htmlFor="banner-duration">Durasi (detik)*</Label>
           <Input
             id="banner-duration"
             type="number"
@@ -425,14 +425,13 @@ export function BannerForm({
               onDataChange({ ...data, duration: value === '' ? 0 : parseInt(value) });
             }}
           />
-          <p className="text-xs text-muted-foreground">Berapa lama konten ditampilkan</p>
         </div>
       )}
 
       <DatePickerWithRange
         value={dateRange}
         onChange={handleDateChange}
-        label="Schedule (optional)"
+        label="Schedule"
       />
 
       {locations.length > 0 && (
@@ -459,9 +458,6 @@ export function BannerForm({
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground sm:text-sm">
-            Pilih lokasi untuk menampilkan banner ini
-          </p>
         </div>
       )}
 

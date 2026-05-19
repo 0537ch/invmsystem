@@ -44,6 +44,49 @@ export function useBannerSetting() {
   const [eventEntries, setEventEntries] = useState<BannerEventEntry[]>([]);
   const [editEventEntries, setEditEventEntries] = useState<BannerEventEntry[]>([]);
 
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterLocation, setFilterLocation] = useState<number | 'all'>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [locations, setLocations] = useState<Location[]>([]);
+
+  // Fetch locations for filter dropdown
+  const fetchLocations = async () => {
+    try {
+      const response = await fetch('/api/locations');
+      const data = await response.json();
+      if (response.ok) {
+        setLocations(data.locations);
+      }
+    } catch (error) {
+      console.error('Error fetching locations:', error);
+    }
+  };
+
+  // Filtered banner items
+  const filteredBannerItems = bannerItems.filter((item) => {
+    // Search filter - match title or type
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesTitle = item.title?.toLowerCase().includes(query);
+      const matchesType = item.type.toLowerCase().includes(query);
+      if (!matchesTitle && !matchesType) return false;
+    }
+
+    // Location filter
+    if (filterLocation !== 'all') {
+      const hasLocation = item.locations?.some((loc) => loc.id === filterLocation);
+      if (!hasLocation) return false;
+    }
+
+    // Status filter
+    if (filterStatus !== 'all') {
+      if (item.status !== filterStatus) return false;
+    }
+
+    return true;
+  });
+
   const fetchBanners = async () => {
     try {
       const response = await fetch('/api/banner');
@@ -60,6 +103,7 @@ export function useBannerSetting() {
 
   useEffect(() => {
     fetchBanners();
+    fetchLocations();
   }, []);
 
   const handleAddItem = async () => {
@@ -545,5 +589,13 @@ export function useBannerSetting() {
     setEventEntries,
     editEventEntries,
     setEditEventEntries,
+    searchQuery,
+    setSearchQuery,
+    filterLocation,
+    setFilterLocation,
+    filterStatus,
+    setFilterStatus,
+    locations,
+    filteredBannerItems,
   };
 }
