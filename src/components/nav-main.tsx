@@ -115,7 +115,7 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
                   className={cn(
                     "flex items-center rounded-lg px-2 py-2 transition-colors border-l-2 border-transparent hover:bg-slate-100/70 hover:border-l-slate-400",
                     isActive
-                      ? "bg-slate-100/70 text-foreground border-l-slate-500 font-semibold"
+                      ? "bg-slate-200/90 text-slate-900 border-l-slate-700 font-semibold"
                       : "text-muted-foreground hover:text-foreground",
                     isCollapsed && "justify-center border-l-0"
                   )}

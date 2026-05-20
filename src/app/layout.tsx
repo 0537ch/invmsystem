@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Banner TV",
   description: "Digital Banner Management System",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export const viewport: Viewport = {

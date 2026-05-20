@@ -7,7 +7,7 @@ export default function BannerPage() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="h-screen overflow-hidden">
         <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-slate-200/60 bg-slate-50/40 px-4">
           <div className="flex items-center gap-3">
             <SidebarTrigger className="-ml-1" />
@@ -15,7 +15,9 @@ export default function BannerPage() {
           </div>
           <HeaderButton />
         </header>
-        <BannerSetting />
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <BannerSetting />
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

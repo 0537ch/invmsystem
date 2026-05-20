@@ -17,6 +17,8 @@ import { useState } from 'react';
 const BannerSetting = () => {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<BannerItem | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const {
     bannerItems,
@@ -93,9 +95,9 @@ const BannerSetting = () => {
   const getStatusInfo = (status: string | undefined) => {
     switch (status) {
       case 'live':
-        return { label: 'Live', variant: 'default' as const };
+        return { label: 'Live', variant: 'emerald' as const };
       case 'scheduled':
-        return { label: 'Scheduled', variant: 'secondary' as const };
+        return { label: 'Scheduled', variant: 'blue' as const };
       case 'expired':
         return { label: 'Expired', variant: 'destructive' as const };
       case 'inactive':
@@ -124,7 +126,7 @@ const BannerSetting = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 h-full">
+    <div className="container mx-auto p-4 sm:p-6 h-full flex flex-col">
       <div className="flex flex-wrap gap-2 w-full sm:w-auto">
         {/* Edit Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -228,9 +230,9 @@ const BannerSetting = () => {
       ) : (
         <>
           {/* Desktop Table View */}
-          <div className="rounded-xl border border-slate-200/60 bg-card text-card-foreground shadow-md overflow-hidden max-h-[calc(100vh-280px)] overflow-y-auto">
+          <div className="rounded-xl border border-slate-200/60 bg-card text-card-foreground shadow-md flex-1 min-h-0 overflow-y-auto">
             <table className="w-full caption-bottom text-sm whitespace-nowrap">
-              <thead className="bg-slate-100/70 border-b border-slate-200/80">
+              <thead className="bg-slate-100/100 border-b border-slate-200/80 sticky top-0 z-10">
                 <tr>
                   <th className="h-12 px-4 text-left align-middle font-semibold text-xs uppercase tracking-wider text-muted-foreground">Posisi</th>
                   <th className="h-12 px-4 text-left align-middle font-semibold text-xs uppercase tracking-wider text-muted-foreground">Preview</th>
