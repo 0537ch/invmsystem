@@ -1,10 +1,10 @@
 "use client";
 
-import { Youtube, Globe, Image as ImageIcon, HardDrive, Trash2, Pencil, Plus, Video, RefreshCw, Eye, Calendar, Search, X } from 'lucide-react';
+import { Youtube, Globe, Image as ImageIcon, HardDrive, Trash2, Pencil, Video, Eye, Calendar, Search, X } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
@@ -21,26 +21,13 @@ const BannerSetting = () => {
   const {
     bannerItems,
     loading,
-    isAdding,
     isSaving,
     isDeleting,
-    isSyncing,
     isToggling,
     isUpdatingPosition,
-    isAddDialogOpen,
-    setIsAddDialogOpen,
-    contentCategory,
-    setContentCategory,
-    imageSource,
-    setImageSource,
-    htmlFile,
-    setHtmlFile,
     editHtmlFile,
     setEditHtmlFile,
-    fileInputRef,
     editFileInputRef,
-    newItem,
-    setNewItem,
     isEditDialogOpen,
     setIsEditDialogOpen,
     editContentCategory,
@@ -49,27 +36,19 @@ const BannerSetting = () => {
     setEditImageSource,
     editingItem,
     setEditingItem,
-    handleAddItem,
     handleDeleteItem,
     handleEditItem,
     handleSaveEdit,
     handlePositionChange,
     handleToggleActive,
-    handleSyncDisplays,
     isUploading,
     uploadedFilePath,
     handleUpload,
-    pendingFile,
-    setPendingFile,
     editPendingFile,
     setEditPendingFile,
-    handleUploadPending,
     handleEditUploadPending,
     formatFileSize,
-    clearPendingFile,
     clearEditPendingFile,
-    eventEntries,
-    setEventEntries,
     editEventEntries,
     setEditEventEntries,
     searchQuery,
@@ -130,6 +109,7 @@ const BannerSetting = () => {
     setDetailDialogOpen(true);
   };
 
+  
 
   if (loading) {
     return (
@@ -145,7 +125,48 @@ const BannerSetting = () => {
 
   return (
     <div className="container mx-auto p-4 sm:p-6 h-full">
-      
+      <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-h-[90vh] overflow-y-auto max-w-[95vw] sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Edit Konten Banner</DialogTitle>
+              <DialogDescription>
+                Edit item banner yang dipilih
+              </DialogDescription>
+            </DialogHeader>
+            <BannerForm
+              mode="edit"
+              data={editingItem}
+              category={editContentCategory}
+              imageSource={editImageSource}
+              htmlFile={editHtmlFile}
+              isLoading={isSaving}
+              onDataChange={setEditingItem}
+              onCategoryChange={setEditContentCategory}
+              onImageSourceChange={setEditImageSource}
+              onHtmlFileChange={setEditHtmlFile}
+              onSubmit={handleSaveEdit}
+              onCancel={() => setIsEditDialogOpen(false)}
+              fileInputRef={editFileInputRef}
+              onUploadPending={setEditPendingFile}
+              onUploadConfirmed={handleEditUploadPending}
+              onClearPending={clearEditPendingFile}
+              isUploading={isUploading}
+              uploadedFilePath={uploadedFilePath}
+              pendingFile={editPendingFile}
+              formatFileSize={formatFileSize}
+              eventEntries={editEventEntries}
+              onEventEntriesChange={setEditEventEntries}
+              onEventUpload={handleUpload}
+            />
+          </DialogContent>
+        </Dialog>
+
+        </div>
+
+        
+
       {/* Filter Bar */}
       <div className="flex flex-wrap gap-3 items-center border-b pb-4 mb-4">
         {/* Search */}

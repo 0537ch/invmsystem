@@ -1,8 +1,7 @@
 import BannerSetting from "./_components/bannerSetting";
+import HeaderButton from "./_components/HeaderButton";
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw } from 'lucide-react';
 
 export default function BannerPage() {
   return (
@@ -14,18 +13,7 @@ export default function BannerPage() {
             <SidebarTrigger className="-ml-1" />
             <h1 className="text-sm font-semibold text-foreground">Banner Setting</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline">
-              <RefreshCw className="size-3.5 mr-1.5" />
-              <span className="hidden sm:inline">Sync Display</span>
-              <span className="sm:hidden">Sync</span>
-            </Button>
-            <Button size="sm">
-              <Plus className="size-3.5 mr-1.5" />
-              <span className="hidden sm:inline">Tambah Konten</span>
-              <span className="sm:hidden">Tambah</span>
-            </Button>
-          </div>
+          <HeaderButton />
         </header>
         <BannerSetting />
       </SidebarInset>
