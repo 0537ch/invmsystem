@@ -70,12 +70,9 @@ export function BannerForm({
 }: BannerFormProps) {
   const [locations, setLocations] = useState<Location[]>([]);
   const uploadInputRef = useRef<HTMLInputElement>(null);
-  const [inputSource, setInputSource] = useState<'upload' | 'url'>(() =>
-    data.url?.startsWith('/uploads/') ? 'upload' : 'url'
-  );
 
-  const handleSourceChange = (newSource: 'upload' | 'url') => {
-    setInputSource(newSource);
+  const handleSourceChange = (newSource: ImageSourceType) => {
+    onImageSourceChange(newSource);
     onDataChange({ ...data, url: '' });
   };
 
@@ -195,25 +192,6 @@ export function BannerForm({
         </Select>
       </div>
 
-      {category === 'image' && (
-        <div className="space-y-2">
-          <Label>Sumber Gambar</Label>
-          <Select
-            value={imageSource}
-            onValueChange={onImageSourceChange}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="url">URL</SelectItem>
-              <SelectItem value="gdrive">Google Drive</SelectItem>
-              <SelectItem value="upload">Unggah File</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
       <div className="space-y-2">
         {category === 'html' ? (
           <>
@@ -281,7 +259,7 @@ export function BannerForm({
                 <input
                   type="radio"
                   name="image-source"
-                  checked={inputSource === 'url'}
+                  checked={imageSource === 'url'}
                   onChange={() => handleSourceChange('url')}
                   className="cursor-pointer"
                 />
@@ -291,17 +269,31 @@ export function BannerForm({
                 <input
                   type="radio"
                   name="image-source"
-                  checked={inputSource === 'upload'}
+                  checked={imageSource === 'gdrive'}
+                  onChange={() => handleSourceChange('gdrive')}
+                  className="cursor-pointer"
+                />
+                <span className="text-sm">Google Drive</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="image-source"
+                  checked={imageSource === 'upload'}
                   onChange={() => handleSourceChange('upload')}
                   className="cursor-pointer"
                 />
                 <span className="text-sm">Upload File</span>
               </label>
             </div>
-            {inputSource === 'url' ? (
+            {imageSource !== 'upload' ? (
               <Input
                 id="image-url"
-                placeholder="https://example.com/image.jpg"
+                placeholder={
+                  imageSource === 'gdrive'
+                    ? 'https://drive.google.com/file/d/.../view'
+                    : 'https://example.com/image.jpg'
+                }
                 value={data.url?.startsWith('/uploads/') ? '' : (data.url || '')}
                 onChange={(e) => onDataChange({ ...data, url: e.target.value })}
               />
@@ -361,9 +353,11 @@ export function BannerForm({
               </>
             )}
             <p className="text-xs text-muted-foreground">
-              {inputSource === 'url'
+              {imageSource === 'url'
                 ? 'URL gambar'
-                : 'Upload file gambar (max 20MB)'}
+                : imageSource === 'gdrive'
+                  ? 'Link share Google Drive (file harus di-share publik)'
+                  : 'Upload file gambar (max 20MB)'}
             </p>
           </>
         ) : category === 'video' ? (
